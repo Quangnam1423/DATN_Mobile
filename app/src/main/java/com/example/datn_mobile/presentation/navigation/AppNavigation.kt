@@ -1,0 +1,29 @@
+package com.example.datn_mobile.presentation.navigation
+
+import androidx.compose.runtime.Composable
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.example.datn_mobile.presentation.screen.LoginScreen
+
+@Composable
+fun AppNavigation () {
+    val navController = rememberNavController()
+
+    NavHost(
+        navController = navController,
+        startDestination = Routes.Login.route // start point
+    ) {
+        composable(route = Routes.Login.route)  {
+            LoginScreen(
+                onLoginSuccess = {
+                    navController.navigate(Routes.Home.route) {
+                        popUpTo(Routes.Login.route) {
+                            inclusive = true
+                        }
+                    }
+                }
+            )
+        }
+    }
+}
