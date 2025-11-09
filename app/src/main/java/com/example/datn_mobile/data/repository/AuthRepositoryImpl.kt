@@ -3,8 +3,13 @@ package com.example.datn_mobile.data.repository
 import com.example.datn_mobile.data.local.PreferenceDataSource
 import com.example.datn_mobile.data.network.api.AuthApiService
 import com.example.datn_mobile.data.network.dto.LoginRequest
+import com.example.datn_mobile.data.network.dto.RegisterRequest
+import com.example.datn_mobile.data.network.dto.RegisterResponse
+import com.example.datn_mobile.data.network.dto.toUserProfile
 import com.example.datn_mobile.data.util.Resource
 import com.example.datn_mobile.domain.model.LoginCredentials
+import com.example.datn_mobile.domain.model.RegisterCredentials
+import com.example.datn_mobile.domain.model.UserProfile
 import com.example.datn_mobile.domain.repository.AuthRepository
 import retrofit2.HttpException
 import java.io.IOException
@@ -39,7 +44,7 @@ class AuthRepositoryImpl @Inject constructor(
             } else {
                 Resource.Error("Login failed: ${response.message()}")
             }
-        } catch(e: HttpException) {
+        } catch (e: HttpException) {
             Resource.Error("Network error: ${e.message()}")
         } catch (e: IOException) {
             Resource.Error("Connection error: ${e.message}")
@@ -48,10 +53,40 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun register(credentials: RegisterCredentials): Resource<UserProfile> {
+        return try {
+            val request = RegisterRequest(
+                email = credentials.email,
+                password = credentials.password
+            )
+
+            val response = authApiService.register(request)
+
+            if (response.isSuccessful) {
+                val registerResponse = response.body()
+
+                if (registerResponse != null) {
+                    Resource.Success(registerResponse.toUserProfile())
+                } else {
+                    Resource.Error("Register response body or result is null")
+                }
+            } else {
+                Resource.Error("Register failed: ${response.message()}")
+            }
+
+        } catch (e: HttpException) {
+            Resource.Error("Network error: ${e.message()}")
+        } catch (e: IOException) {
+            Resource.Error("Connection error: ${e.message}")
+        } catch (e: Exception) {
+            Resource.Error("Unknow error: ${e.message}")
+        }
+    }
+
     override suspend fun saveToken(token: String) {
         prefs.saveToken(token)
     }
-
+}
 //    override val tokenFlow: Flow<String?>
 //        get() = prefs.tokenFlow
 //
@@ -85,4 +120,4 @@ class AuthRepositoryImpl @Inject constructor(
 //    override suspend fun clearToken() {
 //        prefs.clearToken()
 //    }
-}
+// }
