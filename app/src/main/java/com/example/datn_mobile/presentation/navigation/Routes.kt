@@ -1,6 +1,7 @@
 package com.example.datn_mobile.presentation.navigation
 
 sealed class Routes(val route: String) {
+    object Splash : Routes("splash_screen")
     object Login : Routes("login_screen")
     object Home : Routes("home_screen")
     object Detail : Routes("detail_screen/{itemId}") {
