@@ -1,6 +1,7 @@
 package com.example.datn_mobile.di
 
 import com.example.datn_mobile.data.network.api.AuthApiService
+import com.example.datn_mobile.data.network.api.UserApiService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -13,7 +14,13 @@ import javax.inject.Singleton
 object NetworkModule {
     @Provides
     @Singleton
-    fun provideUserApi(retrofit: Retrofit) : AuthApiService {
+    fun provideUAuthApi(retrofit: Retrofit) : AuthApiService {
         return retrofit.create(AuthApiService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideUserApi(retrofit: Retrofit) : UserApiService {
+        return retrofit.create(UserApiService::class.java)
     }
 }

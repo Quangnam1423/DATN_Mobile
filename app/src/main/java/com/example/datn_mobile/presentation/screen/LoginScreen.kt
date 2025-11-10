@@ -27,11 +27,11 @@ import androidx.compose.ui.unit.dp
 import com.example.datn_mobile.presentation.viewmodel.LoginViewModel
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.datn_mobile.presentation.viewmodel.LoginState
-import com.example.datn_mobile.ui.theme.DATN_MobileTheme
+import com.example.compose.DATN_MobileTheme
 
 @Composable
 fun LoginScreen (
-    viewModel: LoginViewModel = hiltViewModel(),
+    viewModel: LoginViewModel = hiltViewModel(), // tự khởi tạo rồi truyenf vào.
     onNavigateToHome: () -> Unit = {},
     onNavigateToRegister: () -> Unit = {},
     onNetworkError: () -> Unit = {},
@@ -42,7 +42,7 @@ fun LoginScreen (
     // handle "side effect" like navigate
     LaunchedEffect(loginState.isLoginSuccess) {
         if (loginState.isLoginSuccess) {
-            //onLoginSuccess()
+            onLoginSuccess()
         }
     }
 
@@ -118,7 +118,6 @@ fun LoginContent (
     }
 }
 
-
 @Preview(showBackground = true, name = "default status")
 @Composable
 fun LoginContentPreview () {
@@ -129,6 +128,7 @@ fun LoginContentPreview () {
         )
     }
 }
+
 @Preview(showBackground = true, name = "loading status")
 @Composable
 fun LoginScreenLoadingPreview() {

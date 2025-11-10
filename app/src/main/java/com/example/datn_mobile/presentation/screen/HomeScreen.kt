@@ -1,29 +1,35 @@
 package com.example.datn_mobile.presentation.screen
 
-import androidx.compose.foundation.layout.Box
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
-import com.example.datn_mobile.ui.theme.DATN_MobileTheme
+import com.example.compose.DATN_MobileTheme
 
 @Composable
-fun HomeScreen() {
-    Box(
+fun HomeScreen (
+
+) {
+    Column(
         modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = "Trang Chủ")
+        Text(text = "Bạn đã đăng nhập thành công!", color = Color.Black)
     }
 }
 
-@Preview(showBackground = true, name = "màn hình chủ")
+@Preview(showBackground = true, name = "default status")
 @Composable
-fun HomeScreenPreview() {
+fun HomeScreenDefaultPreview() {
     DATN_MobileTheme {
         HomeScreen()
     }
 }
-
