@@ -4,7 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import com.example.compose.DATN_MobileTheme
+import com.example.datn_mobile.ui.theme.DATN_MobileTheme
 import com.example.datn_mobile.presentation.navigation.AppNavigation
 import dagger.hilt.android.AndroidEntryPoint
 

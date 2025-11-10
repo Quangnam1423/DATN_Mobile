@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.datn_mobile.presentation.viewmodel.RegisterState
 import com.example.datn_mobile.presentation.viewmodel.RegisterViewModel
-import com.example.compose.DATN_MobileTheme
+import com.example.datn_mobile.ui.theme.DATN_MobileTheme
 
 
 @Composable

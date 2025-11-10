@@ -11,7 +11,7 @@ import androidx.compose.ui.Modifier
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
-import com.example.compose.DATN_MobileTheme
+import com.example.datn_mobile.ui.theme.DATN_MobileTheme
 
 @Composable
 fun HomeScreen (
