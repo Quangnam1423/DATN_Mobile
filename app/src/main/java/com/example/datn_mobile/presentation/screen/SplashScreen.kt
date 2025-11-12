@@ -68,7 +68,7 @@ fun SplashContent() {
                 
                 // Tagline - Smaller white text
                 Text(
-                    text = "Ứng dụng di động tốt nghiệp",
+                    text = "APP MUA BÁN ĐIỆN THOẠI",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Normal,
                     color = Color.White.copy(alpha = 0.9f),

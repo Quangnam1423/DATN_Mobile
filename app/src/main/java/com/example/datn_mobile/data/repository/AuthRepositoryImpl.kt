@@ -86,6 +86,15 @@ class AuthRepositoryImpl @Inject constructor(
     override suspend fun saveToken(token: String) {
         prefs.saveToken(token)
     }
+
+    override suspend fun logout(): Resource<Unit> {
+        return try {
+            prefs.clearToken()
+            Resource.Success(Unit)
+        } catch (e: Exception) {
+            Resource.Error("Logout failed: ${e.message}")
+        }
+    }
 }
 //    override val tokenFlow: Flow<String?>
 //        get() = prefs.tokenFlow

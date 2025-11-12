@@ -18,12 +18,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Handshake
-import androidx.compose.material.icons.filled.Help
 import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Output
@@ -35,6 +33,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -43,11 +44,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import com.example.datn_mobile.presentation.navigation.Routes
+import com.example.datn_mobile.presentation.viewmodel.LogoutViewModel
 import com.example.datn_mobile.ui.theme.DATN_MobileTheme
-
-val lightPink = Color(0xFFFFB6C1)
-val darkGray = Color(0xFF424242)
-val purple = Color(0xFF6A4C93)
 
 // Data class for profile options
 
@@ -58,7 +59,21 @@ data class ProfileOption(
 )
 
 @Composable
-fun MyProfileScreen() {
+fun MyProfileScreen(
+    navController: NavController? = null,
+    viewModel: LogoutViewModel = hiltViewModel(),
+    onLogoutSuccess: () -> Unit = {}
+) {
+    val logoutState by viewModel.logoutState.collectAsState()
+
+    // Handle logout success - navigate to login
+    LaunchedEffect(logoutState.isLogoutSuccess) {
+        if (logoutState.isLogoutSuccess) {
+            onLogoutSuccess()
+            viewModel.resetState()
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -75,7 +90,10 @@ fun MyProfileScreen() {
         Spacer(modifier = Modifier.height(32.dp))
         
         // Bottom Section - Profile Options
-        ProfileOptionsSection()
+        ProfileOptionsSection(
+            navController = navController,
+            onLogoutClick = { viewModel.logout() }
+        )
     }
 }
 
@@ -91,7 +109,7 @@ fun TopProfileSection() {
             text = "My Profile",
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
-            color = darkGray,
+            color = ScreenColors.darkGray,
             modifier = Modifier.align(Alignment.TopCenter)
         )
         
@@ -99,7 +117,7 @@ fun TopProfileSection() {
         Icon(
             imageVector = Icons.Filled.Edit,
             contentDescription = "Edit Profile",
-            tint = purple,
+            tint = ScreenColors.purple,
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .size(24.dp)
@@ -139,7 +157,7 @@ fun TopProfileSection() {
                 text = "USERNAME",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
-                color = darkGray
+                color = ScreenColors.darkGray
             )
             
             Spacer(modifier = Modifier.height(8.dp))
@@ -148,7 +166,7 @@ fun TopProfileSection() {
             Text(
                 text = "ID: XXXXXXXXX",
                 fontSize = 14.sp,
-                color = darkGray
+                color = ScreenColors.darkGray
             )
         }
     }
@@ -162,7 +180,7 @@ fun ActionButtonsSection() {
             .padding(horizontal = 24.dp)
             .height(80.dp)
             .clip(RoundedCornerShape(12.dp))
-            .background(purple),
+            .background(ScreenColors.purple),
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -232,15 +250,22 @@ fun ActionButton(
 }
 
 @Composable
-fun ProfileOptionsSection() {
+fun ProfileOptionsSection(
+    navController: NavController? = null,
+    onLogoutClick: () -> Unit = {}
+) {
     val options = listOf(
-        ProfileOption("Privacy Policy", Icons.Filled.Key),
+        ProfileOption("Privacy Policy", Icons.Filled.Key) {
+            navController?.navigate(Routes.PrivacyPolicy.route)
+        },
         ProfileOption("Payment Methods", Icons.Filled.CreditCard),
         ProfileOption("Notification", Icons.Filled.Notifications),
         ProfileOption("Settings", Icons.Filled.Settings),
-        ProfileOption("Help", Icons.Filled.Handshake),
+        ProfileOption("Help", Icons.Filled.Handshake) {
+            navController?.navigate(Routes.Help.route)
+        },
         ProfileOption("Logout", Icons.Filled.Output) {
-            // Handle logout
+            onLogoutClick()
         }
     )
     
@@ -270,13 +295,13 @@ fun ProfileOptionItem(option: ProfileOption) {
             modifier = Modifier
                 .size(40.dp)
                 .clip(CircleShape)
-                .background(lightPink.copy(alpha = 0.2f)),
+                .background(ScreenColors.lightPink.copy(alpha = 0.2f)),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = option.icon,
                 contentDescription = option.title,
-                tint = darkGray,
+                tint = ScreenColors.darkGray,
                 modifier = Modifier.size(20.dp)
             )
         }
@@ -287,7 +312,7 @@ fun ProfileOptionItem(option: ProfileOption) {
         Text(
             text = option.title,
             fontSize = 16.sp,
-            color = darkGray,
+            color = ScreenColors.darkGray,
             fontWeight = FontWeight.Medium,
             modifier = Modifier.weight(1f)
         )
@@ -297,7 +322,7 @@ fun ProfileOptionItem(option: ProfileOption) {
             Icon(
                 imageVector = Icons.Filled.SubdirectoryArrowRight,
                 contentDescription = null,
-                tint = darkGray.copy(alpha = 0.5f),
+                tint = ScreenColors.darkGray.copy(alpha = 0.5f),
                 modifier = Modifier.size(20.dp)
             )
         }

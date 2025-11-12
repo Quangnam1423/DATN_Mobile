@@ -10,4 +10,5 @@ interface AuthRepository {
 
     suspend fun register(credentials: RegisterCredentials): Resource<UserProfile>
     suspend fun saveToken(token: String)
+    suspend fun logout(): Resource<Unit>
 }

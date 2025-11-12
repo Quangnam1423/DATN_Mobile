@@ -6,11 +6,13 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.datn_mobile.presentation.register.RegisterScreen
 import com.example.datn_mobile.presentation.screen.FavoriteScreen
+import com.example.datn_mobile.presentation.screen.HelpScreen
 import com.example.datn_mobile.presentation.screen.HomeScreen
 import com.example.datn_mobile.presentation.screen.LoginScreen
 import com.example.datn_mobile.presentation.screen.MainScreen
 import com.example.datn_mobile.presentation.screen.MyOrderScreen
 import com.example.datn_mobile.presentation.screen.MyProfileScreen
+import com.example.datn_mobile.presentation.screen.PrivacyPolicyScreen
 import com.example.datn_mobile.presentation.screen.SplashScreen
 
 @Composable
@@ -71,8 +73,34 @@ fun AppNavigation () {
         
         composable(route = Routes.MyProfile.route) {
             MainScreen(navController = navController) {
-                MyProfileScreen()
+                MyProfileScreen(
+                    navController = navController,
+                    onLogoutSuccess = {
+                        // Navigate to Login and clear backstack
+                        navController.navigate(Routes.Login.route) {
+                            popUpTo(Routes.Splash.route) {
+                                inclusive = true
+                            }
+                        }
+                    }
+                )
             }
+        }
+        
+        composable(route = Routes.PrivacyPolicy.route) {
+            PrivacyPolicyScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
+        }
+        
+        composable(route = Routes.Help.route) {
+            HelpScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
         }
 
         composable(route = Routes.Register.route) {
