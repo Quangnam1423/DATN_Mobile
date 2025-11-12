@@ -5,8 +5,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.datn_mobile.presentation.register.RegisterScreen
+import com.example.datn_mobile.presentation.screen.FavoriteScreen
 import com.example.datn_mobile.presentation.screen.HomeScreen
 import com.example.datn_mobile.presentation.screen.LoginScreen
+import com.example.datn_mobile.presentation.screen.MainScreen
+import com.example.datn_mobile.presentation.screen.MyOrderScreen
+import com.example.datn_mobile.presentation.screen.MyProfileScreen
 import com.example.datn_mobile.presentation.screen.SplashScreen
 
 @Composable
@@ -22,14 +26,6 @@ fun AppNavigation () {
                 onTimeout = {
                     // Sau 2 giây tự động chuyển sang Login
                     navController.navigate(Routes.Login.route) {
-                        popUpTo(Routes.Splash.route) {
-                            inclusive = true
-                        }
-                    }
-                },
-                onStartClick = {
-                    // Khi nhấn nút "Bắt Đầu", chuyển sang Home
-                    navController.navigate(Routes.Home.route) {
                         popUpTo(Routes.Splash.route) {
                             inclusive = true
                         }
@@ -54,14 +50,34 @@ fun AppNavigation () {
             )
         }
 
+        // Main screen with bottom navigation
         composable(route = Routes.Home.route) {
-            HomeScreen()
+            MainScreen(navController = navController) {
+                HomeScreen()
+            }
+        }
+        
+        composable(route = Routes.MyOrder.route) {
+            MainScreen(navController = navController) {
+                MyOrderScreen()
+            }
+        }
+        
+        composable(route = Routes.Favorite.route) {
+            MainScreen(navController = navController) {
+                FavoriteScreen()
+            }
+        }
+        
+        composable(route = Routes.MyProfile.route) {
+            MainScreen(navController = navController) {
+                MyProfileScreen()
+            }
         }
 
         composable(route = Routes.Register.route) {
             RegisterScreen(
                 onRegisterSuccess = {
-                    //navController.popBackStack()
                     navController.navigate(Routes.Login.route)
                 },
                 onNavigateBack = {
