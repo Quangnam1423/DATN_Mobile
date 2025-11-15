@@ -81,4 +81,6 @@ dependencies {
     implementation(libs.hilt.navigation.compose)
     // -------------navigation for jetpack---------------
     implementation(libs.navigation.compose)
+
+    implementation(libs.coil.compose)
 }
