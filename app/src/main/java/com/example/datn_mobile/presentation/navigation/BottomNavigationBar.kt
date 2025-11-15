@@ -1,11 +1,11 @@
 package com.example.datn_mobile.presentation.navigation
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LocalShipping
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.LocalShipping
 import androidx.compose.material.icons.outlined.Person
@@ -42,11 +42,11 @@ sealed class BottomNavItem(
         unselectedIcon = Icons.Outlined.LocalShipping
     )
     
-    object Favorite : BottomNavItem(
-        route = Routes.Favorite.route,
-        title = "Favorite",
-        selectedIcon = Icons.Filled.Favorite,
-        unselectedIcon = Icons.Outlined.FavoriteBorder
+    object Cart : BottomNavItem(
+        route = Routes.Cart.route,
+        title = "Cart",
+        selectedIcon = Icons.Filled.ShoppingCart,
+        unselectedIcon = Icons.Outlined.ShoppingCart
     )
     
     object MyProfile : BottomNavItem(
@@ -60,7 +60,7 @@ sealed class BottomNavItem(
 val bottomNavItems = listOf(
     BottomNavItem.Home,
     BottomNavItem.MyOrder,
-    BottomNavItem.Favorite,
+    BottomNavItem.Cart,
     BottomNavItem.MyProfile
 )
 
@@ -69,13 +69,14 @@ fun BottomNavigationBar(navController: NavController) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
     
-    // Purple color for selected state (matching splash screen)
-    val selectedColor = Color(0xFF6A4C93) // Purple color
-    val unselectedColor = Color(0xFF9E9E9E) // Light gray for unselected
+    // Colors matching Login/Register/Splash theme
+    val selectedColor = Color(0xFF57A3DE) // Light blue (matching app theme)
+    val unselectedColor = Color(0xFF867F7F) // Light grey (matching app theme)
+    val backgroundColor = Color.White // White background (matching app theme)
     
     NavigationBar(
-        containerColor = MaterialTheme.colorScheme.surface,
-        contentColor = MaterialTheme.colorScheme.onSurface
+        containerColor = backgroundColor,
+        contentColor = Color(0xFF0C0C0C) // Dark grey for text
     ) {
         bottomNavItems.forEach { item ->
             val isSelected = currentRoute == item.route
@@ -97,9 +98,8 @@ fun BottomNavigationBar(navController: NavController) {
                 onClick = {
                     if (currentRoute != item.route) {
                         navController.navigate(item.route) {
-                            // Pop up to the start destination of the graph to
-                            // avoid building up a large stack of destinations
-                            popUpTo(navController.graph.startDestinationId) {
+                            // Pop up to Home route to avoid building up a large stack
+                            popUpTo(Routes.Home.route) {
                                 saveState = true
                             }
                             // Avoid multiple copies of the same destination when
@@ -113,7 +113,7 @@ fun BottomNavigationBar(navController: NavController) {
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = selectedColor,
                     selectedTextColor = selectedColor,
-                    indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+                    indicatorColor = selectedColor.copy(alpha = 0.15f), // Light blue background for selected
                     unselectedIconColor = unselectedColor,
                     unselectedTextColor = unselectedColor
                 )

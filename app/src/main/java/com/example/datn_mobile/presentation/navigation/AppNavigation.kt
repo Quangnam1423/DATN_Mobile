@@ -5,7 +5,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.datn_mobile.presentation.register.RegisterScreen
-import com.example.datn_mobile.presentation.screen.FavoriteScreen
+import com.example.datn_mobile.presentation.screen.CartScreen
 import com.example.datn_mobile.presentation.screen.HelpScreen
 import com.example.datn_mobile.presentation.screen.HomeScreen
 import com.example.datn_mobile.presentation.screen.LoginScreen
@@ -25,8 +25,14 @@ fun AppNavigation () {
     ) {
         composable(route = Routes.Splash.route) {
             SplashScreen(
-                onTimeout = {
-                    // Sau 2 giây tự động chuyển sang Login
+                onNavigateToRegister = {
+                    navController.navigate(Routes.Register.route) {
+                        popUpTo(Routes.Splash.route) {
+                            inclusive = true
+                        }
+                    }
+                },
+                onNavigateToLogin = {
                     navController.navigate(Routes.Login.route) {
                         popUpTo(Routes.Splash.route) {
                             inclusive = true
@@ -47,7 +53,7 @@ fun AppNavigation () {
                     }
                 },
                 onNavigateToRegister = {
-                    navController.navigate(Routes.Register.route)
+                    navController.popBackStack()
                 }
             )
         }
@@ -65,9 +71,9 @@ fun AppNavigation () {
             }
         }
         
-        composable(route = Routes.Favorite.route) {
+        composable(route = Routes.Cart.route) {
             MainScreen(navController = navController) {
-                FavoriteScreen()
+                CartScreen()
             }
         }
         
@@ -75,13 +81,24 @@ fun AppNavigation () {
             MainScreen(navController = navController) {
                 MyProfileScreen(
                     navController = navController,
-                    onLogoutSuccess = {
+                    userProfile = null, // TODO: Get from ViewModel or State
+                    onLogoutClick = {
                         // Navigate to Login and clear backstack
                         navController.navigate(Routes.Login.route) {
                             popUpTo(Routes.Splash.route) {
                                 inclusive = true
                             }
                         }
+                    },
+                    onEditProfileClick = {
+                        // TODO: Navigate to Edit Profile screen
+                        // navController.navigate(Routes.EditProfile.route)
+                    },
+                    onMyOrderClick = {
+                        navController.navigate(Routes.MyOrder.route)
+                    },
+                    onCartClick = {
+                        navController.navigate(Routes.Cart.route)
                     }
                 )
             }
@@ -106,7 +123,11 @@ fun AppNavigation () {
         composable(route = Routes.Register.route) {
             RegisterScreen(
                 onRegisterSuccess = {
-                    navController.navigate(Routes.Login.route)
+                    navController.navigate(Routes.Home.route) {
+                        popUpTo(Routes.Splash.route) {
+                            inclusive = true
+                        }
+                    }
                 },
                 onNavigateBack = {
                     navController.popBackStack()
