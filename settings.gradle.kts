@@ -19,6 +19,9 @@ dependencyResolutionManagement {
     }
 }
 
+// KSP Global Configuration - Disable incremental processing
+System.setProperty("ksp.incremental", "false")
+
 rootProject.name = "DATN_Mobile"
 include(":app")
  

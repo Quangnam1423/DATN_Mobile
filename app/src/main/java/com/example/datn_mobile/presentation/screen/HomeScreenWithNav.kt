@@ -1,11 +1,20 @@
 package com.example.datn_mobile.presentation.screen
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
@@ -16,9 +25,12 @@ import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -34,6 +46,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.datn_mobile.presentation.viewmodel.HomeViewModel
+import com.example.datn_mobile.presentation.viewmodel.ProfileViewModel
 
 enum class BottomNavItem(
     val route: String,
@@ -49,10 +62,12 @@ enum class BottomNavItem(
 
 @Composable
 fun HomeScreenWithNav(
-    viewModel: HomeViewModel,
+    homeViewModel: HomeViewModel,
+    profileViewModel: ProfileViewModel,
     onProductClick: (String) -> Unit,
     onNavigateToSearch: () -> Unit,
-    onNavigateToProfile: () -> Unit,
+    onNavigateToLogin: () -> Unit,
+    onNavigateToEditProfile: () -> Unit,
     onNavigateToCart: () -> Unit,
     onAddToCartClick: (String) -> Unit
 ) {
@@ -68,7 +83,7 @@ fun HomeScreenWithNav(
                 IconButton(
                     onClick = {
                         selectedBottomItem = BottomNavItem.HOME
-                        viewModel.loadProducts()
+                        homeViewModel.loadProducts()
                     },
                     modifier = Modifier.weight(1f)
                 ) {
@@ -98,7 +113,6 @@ fun HomeScreenWithNav(
                 IconButton(
                     onClick = {
                         selectedBottomItem = BottomNavItem.PROFILE
-                        onNavigateToProfile()
                     },
                     modifier = Modifier.weight(1f)
                 ) {
@@ -131,12 +145,38 @@ fun HomeScreenWithNav(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // Show home content
-            HomeScreenContent(
-                viewModel = viewModel,
-                onProductClick = onProductClick,
-                onAddToCartClick = onAddToCartClick
-            )
+            when (selectedBottomItem) {
+                BottomNavItem.HOME -> {
+                    HomeScreenContent(
+                        viewModel = homeViewModel,
+                        profileViewModel = profileViewModel,
+                        onProductClick = onProductClick,
+                        onAddToCartClick = onAddToCartClick,
+                        onNavigateToProfile = {
+                            selectedBottomItem = BottomNavItem.PROFILE
+                        }
+                    )
+                }
+                BottomNavItem.SEARCH -> {
+                    onNavigateToSearch()
+                }
+                BottomNavItem.PROFILE -> {
+                    ProfileScreen(
+                        viewModel = profileViewModel,
+                        onLogoutClick = {
+                            selectedBottomItem = BottomNavItem.HOME
+                        },
+                        onLoginClick = onNavigateToLogin,
+                        onEditProfileClick = {
+                            // Navigate to Edit Profile Screen
+                            onNavigateToEditProfile()
+                        }
+                    )
+                }
+                BottomNavItem.CART -> {
+                    onNavigateToCart()
+                }
+            }
         }
     }
 }
@@ -144,16 +184,92 @@ fun HomeScreenWithNav(
 @Composable
 fun HomeScreenContent(
     viewModel: HomeViewModel,
+    profileViewModel: ProfileViewModel,
     onProductClick: (String) -> Unit,
-    onAddToCartClick: (String) -> Unit
+    onAddToCartClick: (String) -> Unit,
+    onNavigateToProfile: () -> Unit
 ) {
     val products = viewModel.products.collectAsState()
     val isLoading = viewModel.isLoading.collectAsState()
     val error = viewModel.error.collectAsState()
+    val profileState = profileViewModel.profileState.collectAsState()
 
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
+        // User Header
+        if (profileState.value.isAuthenticated && profileState.value.userProfile != null) {
+            val profile = profileState.value.userProfile!!
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color(0xFF2196F3))
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    // Avatar
+                    Surface(
+                        shape = CircleShape,
+                        color = Color.White,
+                        modifier = Modifier.size(48.dp)
+                    ) {
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            Text(
+                                text = "👤",
+                                fontSize = 24.sp
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.size(12.dp))
+
+                    // User Info
+                    Column(
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(
+                            text = profile.fullName ?: "Người dùng",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White,
+                            maxLines = 1
+                        )
+                        Text(
+                            text = "ID: ${profile.id.take(8)}...",
+                            fontSize = 12.sp,
+                            color = Color.White.copy(alpha = 0.8f),
+                            maxLines = 1
+                        )
+                    }
+                }
+
+                // Profile Button
+                IconButton(
+                    onClick = onNavigateToProfile,
+                    modifier = Modifier
+                        .size(40.dp)
+                        .background(Color.White.copy(alpha = 0.2f), CircleShape)
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Person,
+                        contentDescription = "Profile",
+                        tint = Color.White,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+        }
+
         // Header
         Text(
             text = "Cửa hàng",
@@ -168,7 +284,7 @@ fun HomeScreenContent(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                androidx.compose.material3.CircularProgressIndicator()
+                CircularProgressIndicator()
             }
             return@Column
         }
@@ -181,7 +297,7 @@ fun HomeScreenContent(
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(text = "Lỗi: $errorMsg", color = Color.Red)
-                    androidx.compose.material3.Button(onClick = { viewModel.loadProducts() }) {
+                    Button(onClick = { viewModel.loadProducts() }) {
                         Text("Thử lại")
                     }
                 }
@@ -216,7 +332,7 @@ fun HomeScreenContent(
                         color = Color.Gray,
                         modifier = Modifier.padding(bottom = 16.dp)
                     )
-                    androidx.compose.material3.Button(onClick = { viewModel.loadProducts() }) {
+                    Button(onClick = { viewModel.loadProducts() }) {
                         Text("Tải lại")
                     }
                 }
@@ -227,8 +343,8 @@ fun HomeScreenContent(
         // Products list
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(12.dp)
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             items(products.value) { product ->
                 ProductCard(

@@ -6,23 +6,34 @@ import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
-data class ProfileResponseData(
-    @field:Json(name="id") val id: String,
-    @field:Json(name="fullName") val fullName: String? = null,
-    @field:Json(name="address") val address: String? = null,
-    @field:Json(name="dob") val dob: String? = null,
-    @field:Json(name="email") val email: String? = null,
-    @field:Json(name="phoneNumber") val phoneNumber: String? = null,
-    @field:Json(name="roles") val roles: List<Any>? = null  // Can be String or RoleDto
+data class UserUpdateRequest(
+    @field:Json(name = "fullName") val fullName: String? = null,
+    @field:Json(name = "password") val password: String? = null,
+    @field:Json(name = "address") val address: String? = null,
+    @field:Json(name = "dob") val dob: String? = null,
+    @field:Json(name = "phoneNumber") val phoneNumber: String? = null,
+    @field:Json(name = "roles") val roles: List<String>? = null
 )
 
 @JsonClass(generateAdapter = true)
-data class ProfileResponse(
-    @field:Json(name="code") val code: Int,
-    @field:Json(name="result") val result: ProfileResponseData?
+data class ProfileResponseResult(
+    @field:Json(name = "id") val id: String,
+    @field:Json(name = "fullName") val fullName: String? = null,
+    @field:Json(name = "address") val address: String? = null,
+    @field:Json(name = "dob") val dob: String? = null,
+    @field:Json(name = "email") val email: String? = null,
+    @field:Json(name = "phoneNumber") val phoneNumber: String? = null,
+    @field:Json(name = "roles") val roles: List<Any>? = emptyList()
 )
 
-fun ProfileResponseData.toUserProfile(): UserProfile {
+@JsonClass(generateAdapter = true)
+data class UpdateProfileResponse(
+    @field:Json(name = "code") val code: Int,
+    @field:Json(name = "result") val result: ProfileResponseResult?,
+    @field:Json(name = "message") val message: String? = null
+)
+
+fun ProfileResponseResult.toUserProfile(): UserProfile {
     return UserProfile(
         id = id,
         fullName = fullName,
@@ -52,4 +63,5 @@ fun ProfileResponseData.toUserProfile(): UserProfile {
         } ?: listOf(Role.USER)
     )
 }
+
 

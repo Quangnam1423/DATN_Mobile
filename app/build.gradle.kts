@@ -42,6 +42,11 @@ android {
     }
 }
 
+// KSP Configuration - Disable incremental processing to fix FileAlreadyExistsException
+ksp {
+    arg("incremental", "false")
+}
+
 dependencies {
 
     implementation(libs.androidx.core.ktx)
