@@ -1,7 +1,7 @@
 package com.example.datn_mobile.domain.model
 
 class RegisterCredentials (
-    val email: String,
+    val phoneNumber: String,
     val password: String,
     val role: String?
 )

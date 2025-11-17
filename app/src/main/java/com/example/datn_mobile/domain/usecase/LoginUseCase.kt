@@ -12,8 +12,8 @@ class LoginUseCase @Inject constructor (
 ) {
     suspend operator fun invoke(credentials: LoginCredentials) : Resource<Unit> {
         // validation
-        if (credentials.email.isBlank() || credentials.password.isBlank()) {
-            return Resource.Error("Username and password cannot be blank")
+        if (credentials.phoneNumber.isBlank() || credentials.password.isBlank()) {
+            return Resource.Error("Phone number and password cannot be blank")
         }
 
         val loginResult = authRepository.login(credentials)

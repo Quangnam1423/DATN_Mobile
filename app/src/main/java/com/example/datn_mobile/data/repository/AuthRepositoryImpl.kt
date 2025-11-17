@@ -25,7 +25,7 @@ class AuthRepositoryImpl @Inject constructor(
     override suspend fun login(credentials: LoginCredentials): Resource<Unit> {
         return try {
             val loginRequest = LoginRequest(
-                email = credentials.email,
+                phoneNumber = credentials.phoneNumber,
                 password = credentials.password
             )
 
@@ -56,7 +56,7 @@ class AuthRepositoryImpl @Inject constructor(
     override suspend fun register(credentials: RegisterCredentials): Resource<UserProfile> {
         return try {
             val request = RegisterRequest(
-                email = credentials.email,
+                phoneNumber = credentials.phoneNumber,
                 password = credentials.password
             )
 

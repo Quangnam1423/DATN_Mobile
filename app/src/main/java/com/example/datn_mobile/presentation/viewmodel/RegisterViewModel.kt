@@ -28,9 +28,9 @@ class RegisterViewModel @Inject constructor(
     private val _state = MutableStateFlow(RegisterState())
     val state = _state.asStateFlow()
 
-    fun onRegisterClicked(email: String, password: String, confirmPassword: String) {
+    fun onRegisterClicked(phoneNumber: String, password: String, confirmPassword: String) {
         viewModelScope.launch {
-            if (email.isBlank() || password.isBlank() || confirmPassword.isBlank()) {
+            if (phoneNumber.isBlank() || password.isBlank() || confirmPassword.isBlank()) {
                 _state.value = RegisterState(errorMessage = "Thông tin nhập không đầy đủ!")
                 return@launch
             }
@@ -43,7 +43,7 @@ class RegisterViewModel @Inject constructor(
 
 
             // for now, default role when register on mobile app is normal user.
-            val credentials = RegisterCredentials(email, password, null)
+            val credentials = RegisterCredentials(phoneNumber, password, null)
 
             when (val result = registerUseCase(credentials)) {
                 is Resource.Success -> {

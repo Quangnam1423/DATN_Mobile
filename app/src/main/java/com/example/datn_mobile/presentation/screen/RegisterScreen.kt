@@ -39,8 +39,8 @@ fun RegisterScreen(
 
     RegisterContent(
         state = state,
-        onRegisterClicked = { email, password, confirmPass ->
-            viewModel.onRegisterClicked(email, password, confirmPass)
+        onRegisterClicked = { phoneNumber, password, confirmPass ->
+            viewModel.onRegisterClicked(phoneNumber, password, confirmPass)
         },
         onNavigateBack = onNavigateBack
     )
@@ -52,7 +52,7 @@ fun RegisterContent(
     onRegisterClicked: (String, String, String) -> Unit,
     onNavigateBack: () -> Unit
 ) {
-    var email by remember { mutableStateOf("") }
+    var phoneNumber by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
 
@@ -66,10 +66,11 @@ fun RegisterContent(
         Spacer(modifier = Modifier.height(32.dp))
 
         OutlinedTextField(
-            value = email,
-            onValueChange = { email = it },
-            label = { Text("Email") },
+            value = phoneNumber,
+            onValueChange = { phoneNumber = it },
+            label = { Text("Số điện thoại") },
             singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -101,7 +102,7 @@ fun RegisterContent(
 
         Button(
             onClick = {
-                onRegisterClicked(email, password, confirmPassword)
+                onRegisterClicked(phoneNumber, password, confirmPassword)
             },
             enabled = !state.isLoading,
             modifier = Modifier.fillMaxWidth()

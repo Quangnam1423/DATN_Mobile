@@ -1,6 +1,6 @@
 package com.example.datn_mobile.domain.usecase
 
-import android.util.Patterns
+// import android.util.Patterns
 import com.example.datn_mobile.data.util.Resource
 import com.example.datn_mobile.domain.model.RegisterCredentials
 import com.example.datn_mobile.domain.model.UserProfile
@@ -12,12 +12,12 @@ class RegisterUseCase @Inject constructor(
 ) {
 
     suspend operator fun invoke(credentals: RegisterCredentials) : Resource<UserProfile> {
-        if (credentals.email.isBlank()) {
-            return Resource.Error("Email không được để trống")
+        if (credentals.phoneNumber.isBlank()) {
+            return Resource.Error("Số điện thoại không được để trống")
         }
 
-        if (!Patterns.EMAIL_ADDRESS.matcher(credentals.email).matches()) {
-            return Resource.Error("Email không hợp lệ!")
+        if (credentals.phoneNumber.length < 10) {
+            return Resource.Error("Số điện thoại không hợp lệ!")
         }
 
         if (credentals.password.length < 1) {

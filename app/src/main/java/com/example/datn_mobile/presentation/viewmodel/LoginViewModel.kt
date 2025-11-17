@@ -13,7 +13,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class LoginState(
-    val email: String = "",
+    val phoneNumber: String = "",
     val password: String = "",
     val isLoading: Boolean = false,
     val isLoginSuccess: Boolean = false,

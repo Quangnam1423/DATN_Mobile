@@ -57,8 +57,8 @@ fun LoginScreen (
 
     LoginContent(
         state = loginState,
-        onLoginClicked = {email, password ->
-            viewModel.onLoginClicked(email, password)
+        onLoginClicked = {phoneNumber, password ->
+            viewModel.onLoginClicked(phoneNumber, password)
         },
         onBackClick = onBackClick,
         onNavigateToRegister = onNavigateToRegister,
@@ -75,7 +75,7 @@ fun LoginContent (
     onNavigateToForgotPassword: () -> Unit = {}
 ) {
     // State of UI for OutlinedTextField
-    var email by remember { mutableStateOf("")}
+    var phoneNumber by remember { mutableStateOf("")}
     var password by remember {mutableStateOf("")}
 
     Column(
@@ -122,10 +122,11 @@ fun LoginContent (
             Spacer(modifier = Modifier.height(0.dp))
 
         OutlinedTextField(
-            value = email,
-            onValueChange = {email = it},
-            label = {Text("Tên Đăng Nhập")},
+            value = phoneNumber,
+            onValueChange = {phoneNumber = it},
+            label = {Text("Số Điện Thoại")},
             singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -164,7 +165,7 @@ fun LoginContent (
 
         Button(
             onClick = {
-                onLoginClicked(email, password)
+                onLoginClicked(phoneNumber, password)
             },
             enabled = !state.isLoading,
             modifier = Modifier.fillMaxWidth()
@@ -250,7 +251,7 @@ fun LoginScreenErrorPreview() {
     DATN_MobileTheme {
         LoginContent(
             state = LoginState(isLoading = false,
-                errorMessage = "Tên đăng nhập hoặc mật khẩu sai"
+                errorMessage = "Số điện thoại hoặc mật khẩu sai"
             ),
             onLoginClicked = {_, _ ->},
             onBackClick = {},
