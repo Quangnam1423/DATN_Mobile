@@ -33,9 +33,9 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.datn_mobile.presentation.viewmodel.LoginViewModel
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.datn_mobile.presentation.viewmodel.LoginState
+import com.example.datn_mobile.presentation.viewmodel.LoginViewModel
 import com.example.compose.DATN_MobileTheme
 
 @Composable
@@ -47,6 +47,7 @@ fun LoginScreen (
     onLoginSuccess: () -> Unit
 ) {
     val loginState by viewModel.loginState.collectAsState()
+    val savedPhoneNumber by viewModel.savedPhoneNumberFlow.collectAsState(initial = null)
 
     // handle "side effect" like navigate
     LaunchedEffect(loginState.isLoginSuccess) {
@@ -57,6 +58,7 @@ fun LoginScreen (
 
     LoginContent(
         state = loginState,
+        savedPhoneNumber = savedPhoneNumber,
         onLoginClicked = {phoneNumber, password ->
             viewModel.onLoginClicked(phoneNumber, password)
         },
@@ -69,13 +71,14 @@ fun LoginScreen (
 @Composable
 fun LoginContent (
     state: LoginState,
+    savedPhoneNumber: String? = null,
     onLoginClicked: (String, String) -> Unit,
     onBackClick: () -> Unit = {},
     onNavigateToRegister: () -> Unit = {},
     onNavigateToForgotPassword: () -> Unit = {}
 ) {
-    // State of UI for OutlinedTextField
-    var phoneNumber by remember { mutableStateOf("")}
+    // State of UI for OutlinedTextField - pre-fill with saved phone number
+    var phoneNumber by remember { mutableStateOf(savedPhoneNumber ?: "")}
     var password by remember {mutableStateOf("")}
 
     Column(

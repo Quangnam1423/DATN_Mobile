@@ -6,12 +6,14 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.datn_mobile.presentation.register.RegisterScreen
+import com.example.datn_mobile.presentation.screen.CartScreen
 import com.example.datn_mobile.presentation.screen.EditProfileScreen
 import com.example.datn_mobile.presentation.screen.ForgotPasswordScreen
 import com.example.datn_mobile.presentation.screen.HomeScreenWithNav
 import com.example.datn_mobile.presentation.screen.LoginScreen
 import com.example.datn_mobile.presentation.screen.SearchScreen
 import com.example.datn_mobile.presentation.screen.SplashScreen
+import com.example.datn_mobile.presentation.viewmodel.CartViewModel
 import com.example.datn_mobile.presentation.viewmodel.HomeViewModel
 import com.example.datn_mobile.presentation.viewmodel.ProfileViewModel
 import com.example.datn_mobile.presentation.viewmodel.SearchViewModel
@@ -142,6 +144,20 @@ fun AppNavigation() {
         composable(route = Routes.EditProfile.route) {
             EditProfileScreen(
                 onBackClick = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable(route = Routes.Cart.route) {
+            val cartViewModel: CartViewModel = hiltViewModel()
+            CartScreen(
+                viewModel = cartViewModel,
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onCheckoutClick = {
+                    // TODO: Navigate to checkout screen
                     navController.popBackStack()
                 }
             )

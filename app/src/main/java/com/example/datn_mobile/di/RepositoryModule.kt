@@ -1,9 +1,11 @@
 package com.example.datn_mobile.di
 
 import com.example.datn_mobile.data.repository.AuthRepositoryImpl
+import com.example.datn_mobile.data.repository.CartRepositoryImpl
 import com.example.datn_mobile.data.repository.ProductRepositoryImpl
 import com.example.datn_mobile.data.repository.UserRepositoryImpl
 import com.example.datn_mobile.domain.repository.AuthRepository
+import com.example.datn_mobile.domain.repository.CartRepository
 import com.example.datn_mobile.domain.repository.ProductRepository
 import com.example.datn_mobile.domain.repository.UserRepository
 import dagger.Binds
@@ -32,4 +34,10 @@ abstract class RepositoryModule {
     abstract fun bindUserRepository(
         userRepositoryImpl: UserRepositoryImpl
     ) : UserRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindCartRepository(
+        cartRepositoryImpl: CartRepositoryImpl
+    ) : CartRepository
 }

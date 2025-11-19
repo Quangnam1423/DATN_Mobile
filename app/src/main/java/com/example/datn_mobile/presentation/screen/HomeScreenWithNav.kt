@@ -24,6 +24,8 @@ import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.ShoppingCart
+import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.Badge
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -74,6 +76,8 @@ fun HomeScreenWithNav(
     onAddToCartClick: (String) -> Unit
 ) {
     var selectedBottomItem by remember { mutableStateOf(BottomNavItem.HOME) }
+    val profileState = profileViewModel.profileState.collectAsState()
+    val isAuthenticated = profileState.value.isAuthenticated
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -125,19 +129,37 @@ fun HomeScreenWithNav(
                     )
                 }
 
-                // Cart button
+                // Cart button with authentication check
                 IconButton(
                     onClick = {
-                        selectedBottomItem = BottomNavItem.CART
-                        onNavigateToCart()
+                        if (isAuthenticated) {
+                            selectedBottomItem = BottomNavItem.CART
+                            onNavigateToCart()
+                        } else {
+                            MessageManager.showError("Vui lòng đăng nhập để truy cập giỏ hàng")
+                            onNavigateToLogin()
+                        }
                     },
                     modifier = Modifier.weight(1f)
                 ) {
-                    Icon(
-                        imageVector = if (selectedBottomItem == BottomNavItem.CART)
-                            BottomNavItem.CART.selectedIcon else BottomNavItem.CART.icon,
-                        contentDescription = BottomNavItem.CART.label
-                    )
+                    BadgedBox(
+                        badge = {
+                            if (isAuthenticated) {
+                                Badge(
+                                    containerColor = Color.Red,
+                                    contentColor = Color.White
+                                ) {
+                                    Text("!")
+                                }
+                            }
+                        }
+                    ) {
+                        Icon(
+                            imageVector = if (selectedBottomItem == BottomNavItem.CART)
+                                BottomNavItem.CART.selectedIcon else BottomNavItem.CART.icon,
+                            contentDescription = BottomNavItem.CART.label
+                        )
+                    }
                 }
             }
         }

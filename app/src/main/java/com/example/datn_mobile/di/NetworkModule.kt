@@ -1,6 +1,7 @@
 package com.example.datn_mobile.di
 
 import com.example.datn_mobile.data.network.api.AuthApiService
+import com.example.datn_mobile.data.network.api.CartApiService
 import com.example.datn_mobile.data.network.api.ProductApiService
 import com.example.datn_mobile.data.network.api.UserApiService
 import dagger.Module
@@ -29,5 +30,11 @@ object NetworkModule {
     @Singleton
     fun provideProductApi(retrofit: Retrofit) : ProductApiService {
         return retrofit.create(ProductApiService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideCartApi(retrofit: Retrofit) : CartApiService {
+        return retrofit.create(CartApiService::class.java)
     }
 }

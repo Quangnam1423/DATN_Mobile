@@ -27,6 +27,7 @@ class PreferenceDataSource @Inject constructor(
     companion object {
         private val KEY_IS_FIRST_LAUNCH = booleanPreferencesKey("is_first_launch")
         private val KEY_ACCESS_TOKEN = stringPreferencesKey("access_token")
+        private val KEY_PHONE_NUMBER = stringPreferencesKey("phone_number")
     }
 
     val isFirstLaunchFlow: Flow<Boolean> = context.dataStore.data.map {
@@ -35,6 +36,10 @@ class PreferenceDataSource @Inject constructor(
 
     val tokenFlow: Flow<String?> = context.dataStore.data.map {
         it[KEY_ACCESS_TOKEN]
+    }
+
+    val phoneNumberFlow: Flow<String?> = context.dataStore.data.map {
+        it[KEY_PHONE_NUMBER]
     }
 
     suspend fun setFirstLaunch(isFirst: Boolean) {
@@ -47,5 +52,13 @@ class PreferenceDataSource @Inject constructor(
 
     suspend fun clearToken() {
         context.dataStore.edit { it.remove(KEY_ACCESS_TOKEN) }
+    }
+
+    suspend fun savePhoneNumber(phoneNumber: String) {
+        context.dataStore.edit { it[KEY_PHONE_NUMBER] = phoneNumber }
+    }
+
+    suspend fun clearPhoneNumber() {
+        context.dataStore.edit { it.remove(KEY_PHONE_NUMBER) }
     }
 }

@@ -2,6 +2,7 @@ package com.example.datn_mobile.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.datn_mobile.data.local.PreferenceDataSource
 import com.example.datn_mobile.data.util.Resource
 import com.example.datn_mobile.domain.model.RegisterCredentials
 import com.example.datn_mobile.domain.usecase.RegisterUseCase
@@ -22,7 +23,8 @@ data class RegisterState(
 
 @HiltViewModel
 class RegisterViewModel @Inject constructor(
-    private val registerUseCase: RegisterUseCase
+    private val registerUseCase: RegisterUseCase,
+    private val preferenceDataSource: PreferenceDataSource
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(RegisterState())
@@ -47,6 +49,8 @@ class RegisterViewModel @Inject constructor(
 
             when (val result = registerUseCase(credentials)) {
                 is Resource.Success -> {
+                    // Save phone number for login pre-fill
+                    preferenceDataSource.savePhoneNumber(phoneNumber)
                     _state.value = RegisterState(isRegisterSuccess = true)
                 }
                 is Resource.Error -> {
