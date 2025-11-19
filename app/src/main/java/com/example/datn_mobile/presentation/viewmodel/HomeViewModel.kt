@@ -2,26 +2,27 @@ package com.example.datn_mobile.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.datn_mobile.data.util.Resource
 import com.example.datn_mobile.domain.model.Product
-import com.example.datn_mobile.domain.repository.ProductRepository
+import com.example.datn_mobile.domain.usecase.HomeUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+data class HomeState(
+    val products: List<Product> = emptyList(),
+    val isLoading: Boolean = false,
+    val error: String? = null
+)
+
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val productRepository: ProductRepository
+    private val homeUseCase: HomeUseCase
 ) : ViewModel() {
-    private val _products = MutableStateFlow<List<Product>>(emptyList())
-    val products: StateFlow<List<Product>> = _products
-
-    private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading
-
-    private val _error = MutableStateFlow<String?>(null)
-    val error: StateFlow<String?> = _error
+    private val _homeState = MutableStateFlow(HomeState())
+    val homeState = _homeState.asStateFlow()
 
     init {
         loadProducts()
@@ -29,15 +30,24 @@ class HomeViewModel @Inject constructor(
 
     fun loadProducts() {
         viewModelScope.launch {
-            _isLoading.value = true
-            try {
-                val response = productRepository.getHomeProducts()
-                _products.value = response.result
-                _error.value = null
-            } catch (e: Exception) {
-                _error.value = e.message ?: "Unknown error"
-            } finally {
-                _isLoading.value = false
+            _homeState.value = HomeState(isLoading = true)
+
+            when (val result = homeUseCase()) {
+                is Resource.Success -> {
+                    _homeState.value = HomeState(
+                        products = result.data ?: emptyList(),
+                        isLoading = false,
+                        error = null
+                    )
+                }
+                is Resource.Error -> {
+                    _homeState.value = HomeState(
+                        products = emptyList(),
+                        isLoading = false,
+                        error = result.message
+                    )
+                }
+                else -> { }
             }
         }
     }

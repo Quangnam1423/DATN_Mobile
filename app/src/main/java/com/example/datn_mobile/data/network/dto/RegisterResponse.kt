@@ -24,7 +24,7 @@ data class UserDto(
     @field:Json(name="fullName") val fullName: String?,
     @field:Json(name="address") val address: String?,
     @field:Json(name="dob") val dob: String?,
-    @field:Json(name="email") val email: String,
+    @field:Json(name="email") val email: String?,
     @field:Json(name="phoneNumber") val phoneNumber: String?,
     @field:Json(name="roles") val roles: List<RoleDto>?
 )

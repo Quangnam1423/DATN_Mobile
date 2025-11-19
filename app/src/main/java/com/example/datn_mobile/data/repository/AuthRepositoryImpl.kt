@@ -2,6 +2,7 @@ package com.example.datn_mobile.data.repository
 
 import com.example.datn_mobile.data.local.PreferenceDataSource
 import com.example.datn_mobile.data.network.api.AuthApiService
+import com.example.datn_mobile.data.network.dto.ErrorResponse
 import com.example.datn_mobile.data.network.dto.LoginRequest
 import com.example.datn_mobile.data.network.dto.RegisterRequest
 import com.example.datn_mobile.data.network.dto.RegisterResponse
@@ -11,6 +12,7 @@ import com.example.datn_mobile.domain.model.LoginCredentials
 import com.example.datn_mobile.domain.model.RegisterCredentials
 import com.example.datn_mobile.domain.model.UserProfile
 import com.example.datn_mobile.domain.repository.AuthRepository
+import com.squareup.moshi.Moshi
 import retrofit2.HttpException
 import java.io.IOException
 import javax.inject.Inject
@@ -19,7 +21,8 @@ import javax.inject.Singleton
 @Singleton
 class AuthRepositoryImpl @Inject constructor(
     private val authApiService: AuthApiService,
-    private val prefs: PreferenceDataSource
+    private val prefs: PreferenceDataSource,
+    private val moshi: Moshi
 ) : AuthRepository {
 
     override suspend fun login(credentials: LoginCredentials): Resource<Unit> {
@@ -71,7 +74,25 @@ class AuthRepositoryImpl @Inject constructor(
                     Resource.Error("Register response body or result is null")
                 }
             } else {
-                Resource.Error("Register failed: ${response.message()}")
+                // Parse error response to get error code
+                val errorBody = response.errorBody()?.string()
+                var errorMessage = "Register failed: ${response.message()}"
+
+                if (!errorBody.isNullOrEmpty()) {
+                    try {
+                        val adapter = moshi.adapter(ErrorResponse::class.java)
+                        val errorResponse = adapter.fromJson(errorBody)
+
+                        errorMessage = when (errorResponse?.code) {
+                            1002 -> "Số điện thoại đã tồn tại"
+                            else -> errorResponse?.message ?: "Đăng ký thất bại"
+                        }
+                    } catch (e: Exception) {
+                        // If parsing fails, use generic error message
+                    }
+                }
+
+                Resource.Error(errorMessage)
             }
 
         } catch (e: HttpException) {
@@ -79,7 +100,7 @@ class AuthRepositoryImpl @Inject constructor(
         } catch (e: IOException) {
             Resource.Error("Connection error: ${e.message}")
         } catch (e: Exception) {
-            Resource.Error("Unknow error: ${e.message}")
+            Resource.Error("Unknown error: ${e.message}")
         }
     }
 

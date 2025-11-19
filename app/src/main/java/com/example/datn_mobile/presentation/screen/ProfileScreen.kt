@@ -13,6 +13,7 @@ import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,6 +28,7 @@ import com.example.datn_mobile.domain.model.Role
 import com.example.datn_mobile.domain.model.UserProfile
 import com.example.datn_mobile.presentation.viewmodel.ProfileViewModel
 import com.example.compose.DATN_MobileTheme
+import com.example.datn_mobile.utils.MessageManager
 
 @Composable
 fun ProfileScreen(
@@ -120,6 +122,13 @@ private fun AuthenticatedProfileScreen(
     onLogout: () -> Unit,
     onEditClick: () -> Unit
 ) {
+    // Show error message when error occurs
+    LaunchedEffect(state.error) {
+        state.error?.let { errorMsg ->
+            MessageManager.showError(errorMsg)
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -149,41 +158,6 @@ private fun AuthenticatedProfileScreen(
                 contentAlignment = Alignment.Center
             ) {
                 CircularProgressIndicator()
-            }
-            return@Column
-        }
-
-        // Error state - only show error if there's no profile data at all
-        if (state.error != null && state.userProfile == null) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        text = "⚠️",
-                        fontSize = 48.sp,
-                        modifier = Modifier.padding(bottom = 16.dp)
-                    )
-                    Text(
-                        text = state.error,
-                        fontSize = 14.sp,
-                        color = Color.Red,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(bottom = 16.dp)
-                    )
-                    Button(
-                        onClick = onRefresh,
-                        modifier = Modifier.height(40.dp)
-                    ) {
-                        Text("Thử lại")
-                    }
-                }
             }
             return@Column
         }

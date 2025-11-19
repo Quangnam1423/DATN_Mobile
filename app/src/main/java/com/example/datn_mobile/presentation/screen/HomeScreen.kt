@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -19,6 +20,7 @@ import coil.compose.AsyncImage
 import com.example.datn_mobile.domain.model.Product
 import com.example.datn_mobile.presentation.viewmodel.HomeViewModel
 import java.util.Locale
+import com.example.datn_mobile.utils.MessageManager
 
 @Composable
 fun HomeScreen(
@@ -26,9 +28,15 @@ fun HomeScreen(
     onProductClick: (String) -> Unit,
     onAddToCartClick: (String) -> Unit
 ) {
-    val products = viewModel.products.collectAsState()
-    val isLoading = viewModel.isLoading.collectAsState()
-    val error = viewModel.error.collectAsState()
+    val homeState = viewModel.homeState.collectAsState()
+    val state = homeState.value
+
+    // Show error message when error occurs
+    LaunchedEffect(state.error) {
+        state.error?.let { errorMsg ->
+            MessageManager.showError(errorMsg)
+        }
+    }
 
     Column(
         modifier = Modifier.fillMaxSize()
@@ -42,7 +50,7 @@ fun HomeScreen(
         )
 
         // Loading state
-        if (isLoading.value) {
+        if (state.isLoading) {
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
@@ -52,24 +60,8 @@ fun HomeScreen(
             return@Column
         }
 
-        // Error state
-        error.value?.let { errorMsg ->
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(text = "Lỗi: $errorMsg", color = Color.Red)
-                    Button(onClick = { viewModel.loadProducts() }) {
-                        Text("Thử lại")
-                    }
-                }
-            }
-            return@Column
-        }
-
         // Empty state
-        if (products.value.isEmpty()) {
+        if (state.products.isEmpty()) {
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
@@ -109,7 +101,7 @@ fun HomeScreen(
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            items(products.value) { product ->
+            items(state.products) { product ->
                 ProductCard(
                     product = product,
                     onProductClick = onProductClick,

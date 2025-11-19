@@ -20,7 +20,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,13 +39,12 @@ import kotlinx.coroutines.delay
  */
 @Composable
 fun MessageDisplay() {
-    val messageFlow = MessageBus.messageFlow.collectAsState(initial = null)
     var currentMessage by remember { mutableStateOf<Message?>(null) }
     var isVisible by remember { mutableStateOf(false) }
 
-    // Khi có message mới, cập nhật state
-    LaunchedEffect(messageFlow.value) {
-        messageFlow.value?.let { message ->
+    // Collect messages từ MessageBus
+    LaunchedEffect(Unit) {
+        MessageBus.messageFlow.collect { message ->
             currentMessage = message
             isVisible = true
             // Tự động ẩn sau duration
@@ -59,7 +57,9 @@ fun MessageDisplay() {
     AnimatedVisibility(
         visible = isVisible,
         enter = fadeIn(),
-        exit = fadeOut()
+        exit = fadeOut(),
+        modifier = Modifier
+            .fillMaxWidth()
     ) {
         currentMessage?.let { message ->
             MessageDisplayCard(message)
@@ -72,7 +72,8 @@ private fun MessageDisplayCard(message: Message) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp)
+            .padding(16.dp),
+        contentAlignment = Alignment.TopCenter
     ) {
         Row(
             modifier = Modifier

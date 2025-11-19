@@ -14,6 +14,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -31,11 +32,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.datn_mobile.presentation.viewmodel.EditProfileViewModel
+import com.example.datn_mobile.utils.MessageManager
 
 @Composable
 fun EditProfileScreen(
@@ -68,8 +69,6 @@ private fun EditProfileContent(
     var fullName by remember { mutableStateOf("") }
     var address by remember { mutableStateOf("") }
     var dob by remember { mutableStateOf("") }
-    var newPassword by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
 
     // Initialize form fields with profile data
     LaunchedEffect(state.userProfile) {
@@ -158,7 +157,7 @@ private fun EditProfileContent(
             return@Column
         }
 
-        // ✅ CHANGED: Always show form, even if userProfile is null
+        // Always show form, even if userProfile is null
         // User can edit with empty form and submit
         Column(
             modifier = Modifier
@@ -225,67 +224,16 @@ private fun EditProfileContent(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // Divider text
-            Text(
-                text = "Đổi Mật Khẩu (Để trống nếu không thay đổi)",
-                fontSize = 12.sp,
-                color = Color.Gray,
-                fontWeight = FontWeight.Medium,
-                modifier = Modifier.padding(vertical = 8.dp)
-            )
-
-            // New Password
-            OutlinedTextField(
-                value = newPassword,
-                onValueChange = { newPassword = it },
-                label = { Text("Mật Khẩu Mới") },
-                singleLine = true,
-                visualTransformation = PasswordVisualTransformation(),
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // Confirm Password
-            OutlinedTextField(
-                value = confirmPassword,
-                onValueChange = { confirmPassword = it },
-                label = { Text("Xác Nhận Mật Khẩu") },
-                singleLine = true,
-                visualTransformation = PasswordVisualTransformation(),
-                modifier = Modifier.fillMaxWidth()
-            )
-
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Error message
-            state.error?.let {
-                Text(
-                    text = it,
-                    color = Color.Red,
-                    fontSize = 12.sp,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp)
-                )
-            }
 
             // Save button
             Button(
                 onClick = {
-                    if (newPassword.isNotEmpty() && newPassword != confirmPassword) {
-                        return@Button
-                    }
-
-                    val passwordToUpdate = if (newPassword.isNotEmpty()) newPassword else null
-
                     viewModel.updateUserProfile(
                         fullName = fullName,
                         address = address,
-                        dob = dob,
-                        password = passwordToUpdate
+                        dob = dob
                     )
                 },
                 enabled = !state.isSaving,
@@ -312,7 +260,7 @@ private fun EditProfileContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(48.dp),
-                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                colors = ButtonDefaults.buttonColors(
                     containerColor = Color.Gray
                 )
             ) {

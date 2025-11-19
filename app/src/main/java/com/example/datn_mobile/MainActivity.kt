@@ -7,7 +7,6 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.example.compose.DATN_MobileTheme
 import com.example.datn_mobile.presentation.navigation.AppNavigation
@@ -35,13 +34,7 @@ fun MainContent() {
         // Main navigation
         AppNavigation()
 
-        // Message display ở top của màn hình
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .align(Alignment.TopCenter)
-        ) {
-            MessageDisplay()
-        }
+        // Message display ở top của màn hình - không được phủ bởi AppNavigation
+        MessageDisplay()
     }
 }

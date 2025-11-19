@@ -33,6 +33,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -47,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.datn_mobile.presentation.viewmodel.HomeViewModel
 import com.example.datn_mobile.presentation.viewmodel.ProfileViewModel
+import com.example.datn_mobile.utils.MessageManager
 
 enum class BottomNavItem(
     val route: String,
@@ -189,10 +191,16 @@ fun HomeScreenContent(
     onAddToCartClick: (String) -> Unit,
     onNavigateToProfile: () -> Unit
 ) {
-    val products = viewModel.products.collectAsState()
-    val isLoading = viewModel.isLoading.collectAsState()
-    val error = viewModel.error.collectAsState()
+    val homeState = viewModel.homeState.collectAsState()
+    val state = homeState.value
     val profileState = profileViewModel.profileState.collectAsState()
+
+    // Show error message when error occurs
+    LaunchedEffect(state.error) {
+        state.error?.let { errorMsg ->
+            MessageManager.showError(errorMsg)
+        }
+    }
 
     Column(
         modifier = Modifier.fillMaxSize()
@@ -279,7 +287,7 @@ fun HomeScreenContent(
         )
 
         // Loading state
-        if (isLoading.value) {
+        if (state.isLoading) {
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
@@ -289,24 +297,8 @@ fun HomeScreenContent(
             return@Column
         }
 
-        // Error state
-        error.value?.let { errorMsg ->
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(text = "Lỗi: $errorMsg", color = Color.Red)
-                    Button(onClick = { viewModel.loadProducts() }) {
-                        Text("Thử lại")
-                    }
-                }
-            }
-            return@Column
-        }
-
         // Empty state
-        if (products.value.isEmpty()) {
+        if (state.products.isEmpty()) {
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
@@ -346,7 +338,7 @@ fun HomeScreenContent(
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            items(products.value) { product ->
+            items(state.products) { product ->
                 ProductCard(
                     product = product,
                     onProductClick = onProductClick,
