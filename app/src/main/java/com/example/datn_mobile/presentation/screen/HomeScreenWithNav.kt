@@ -178,7 +178,8 @@ fun HomeScreenWithNav(
                         onAddToCartClick = onAddToCartClick,
                         onNavigateToProfile = {
                             selectedBottomItem = BottomNavItem.PROFILE
-                        }
+                        },
+                        onNavigateToLogin = onNavigateToLogin  // ✅ Truyền callback
                     )
                 }
                 BottomNavItem.SEARCH -> {
@@ -211,11 +212,13 @@ fun HomeScreenContent(
     profileViewModel: ProfileViewModel,
     onProductClick: (String) -> Unit,
     onAddToCartClick: (String) -> Unit,
-    onNavigateToProfile: () -> Unit
+    onNavigateToProfile: () -> Unit,
+    onNavigateToLogin: () -> Unit  // ✅ Thêm callback
 ) {
     val homeState = viewModel.homeState.collectAsState()
     val state = homeState.value
     val profileState = profileViewModel.profileState.collectAsState()
+    val isAuthenticated = profileState.value.isAuthenticated
 
     // Show error message when error occurs
     LaunchedEffect(state.error) {
@@ -228,7 +231,7 @@ fun HomeScreenContent(
         modifier = Modifier.fillMaxSize()
     ) {
         // User Header
-        if (profileState.value.isAuthenticated && profileState.value.userProfile != null) {
+        if (isAuthenticated && profileState.value.userProfile != null) {
             val profile = profileState.value.userProfile!!
             Row(
                 modifier = Modifier
@@ -364,7 +367,16 @@ fun HomeScreenContent(
                 ProductCard(
                     product = product,
                     onProductClick = onProductClick,
-                    onAddToCartClick = onAddToCartClick
+                    onAddToCartClick = {
+                        // ✅ Kiểm tra authentication trước khi thêm giỏ
+                        if (isAuthenticated) {
+                            onAddToCartClick(it)
+                        } else {
+                            MessageManager.showError("❌ Vui lòng đăng nhập để thêm vào giỏ hàng")
+                            onNavigateToLogin()
+                        }
+                    },
+                    isAuthenticated = isAuthenticated
                 )
             }
         }

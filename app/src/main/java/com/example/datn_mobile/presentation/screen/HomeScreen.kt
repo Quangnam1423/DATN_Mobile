@@ -4,10 +4,17 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -116,8 +123,12 @@ fun HomeScreen(
 fun ProductCard(
     product: Product,
     onProductClick: (String) -> Unit,
-    onAddToCartClick: (String) -> Unit
+    onAddToCartClick: (String) -> Unit,
+    isAuthenticated: Boolean = true  // ✅ Thêm parameter
 ) {
+    // ✅ State để quản lý số lượng
+    var quantity by remember { mutableStateOf(0) }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -154,7 +165,7 @@ fun ProductCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column {
+                Column(modifier = Modifier.weight(1f)) {
                     // Show color if available, otherwise show createDate
                     product.variant.color?.let {
                         Text(
@@ -191,11 +202,95 @@ fun ProductCard(
                     }
                 }
 
-                Button(
-                    onClick = { onAddToCartClick(product.id) },
-                    modifier = Modifier.height(36.dp)
+                // ✅ Quantity Control (+ / -)
+                Row(
+                    modifier = Modifier
+                        .height(36.dp)
+                        .fillMaxHeight(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    Text("Thêm giỏ")
+                    // Minus button
+                    IconButton(
+                        onClick = {
+                            if (quantity > 0) {
+                                quantity--
+                            }
+                        },
+                        modifier = Modifier
+                            .size(32.dp)
+                            .padding(0.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Close,  // ✅ Sử dụng Close icon
+                            contentDescription = "Giảm",
+                            tint = Color.Red,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+
+                    // Quantity display
+                    Surface(
+                        modifier = Modifier
+                            .width(32.dp)
+                            .fillMaxHeight(),
+                        color = Color.LightGray.copy(alpha = 0.5f)
+                    ) {
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            Text(
+                                text = "$quantity",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+
+                    // Plus button
+                    IconButton(
+                        onClick = {
+                            // ✅ Kiểm tra số lượng có sẵn
+                            val maxQuantity = product.variant.quantity ?: 0
+                            if (quantity < maxQuantity) {
+                                quantity++
+                            } else if (maxQuantity > 0) {
+                                MessageManager.showError("❌ Chỉ còn $maxQuantity sản phẩm")
+                            } else {
+                                MessageManager.showError("❌ Sản phẩm hết hàng")
+                            }
+                        },
+                        modifier = Modifier
+                            .size(32.dp)
+                            .padding(0.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Add,
+                            contentDescription = "Tăng",
+                            tint = Color.Green,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+
+                    // Add to cart button (khi quantity > 0)
+                    if (quantity > 0) {
+                        Button(
+                            onClick = {
+                                // ✅ Thêm vào giỏ hàng
+                                if (isAuthenticated) {
+                                    onAddToCartClick(product.id)
+                                    MessageManager.showSuccess("✅ Đã thêm $quantity sản phẩm vào giỏ")
+                                    quantity = 0  // Reset quantity
+                                } else {
+                                    MessageManager.showError("❌ Vui lòng đăng nhập để thêm vào giỏ hàng")
+                                }
+                            },
+                            modifier = Modifier.height(32.dp)
+                        ) {
+                            Text("Thêm", fontSize = 10.sp)
+                        }
+                    }
                 }
             }
 
