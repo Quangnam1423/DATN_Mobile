@@ -366,17 +366,7 @@ fun HomeScreenContent(
             items(state.products) { product ->
                 ProductCard(
                     product = product,
-                    onProductClick = onProductClick,
-                    onAddToCartClick = {
-                        // ✅ Kiểm tra authentication trước khi thêm giỏ
-                        if (isAuthenticated) {
-                            onAddToCartClick(it)
-                        } else {
-                            MessageManager.showError("❌ Vui lòng đăng nhập để thêm vào giỏ hàng")
-                            onNavigateToLogin()
-                        }
-                    },
-                    isAuthenticated = isAuthenticated
+                    onProductClick = onProductClick
                 )
             }
         }

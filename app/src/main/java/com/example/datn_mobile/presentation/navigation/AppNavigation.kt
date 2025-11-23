@@ -2,19 +2,23 @@ package com.example.datn_mobile.presentation.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.datn_mobile.presentation.register.RegisterScreen
 import com.example.datn_mobile.presentation.screen.CartScreen
 import com.example.datn_mobile.presentation.screen.EditProfileScreen
 import com.example.datn_mobile.presentation.screen.ForgotPasswordScreen
 import com.example.datn_mobile.presentation.screen.HomeScreenWithNav
 import com.example.datn_mobile.presentation.screen.LoginScreen
+import com.example.datn_mobile.presentation.screen.ProductDetailScreen
 import com.example.datn_mobile.presentation.screen.SearchScreen
 import com.example.datn_mobile.presentation.screen.SplashScreen
 import com.example.datn_mobile.presentation.viewmodel.CartViewModel
 import com.example.datn_mobile.presentation.viewmodel.HomeViewModel
+import com.example.datn_mobile.presentation.viewmodel.ProductDetailViewModel
 import com.example.datn_mobile.presentation.viewmodel.ProfileViewModel
 import com.example.datn_mobile.presentation.viewmodel.SearchViewModel
 import com.example.datn_mobile.presentation.viewmodel.SplashViewModel
@@ -33,6 +37,13 @@ fun AppNavigation() {
                 viewModel = viewModel,
                 onNavigateToHome = {
                     navController.navigate(Routes.Home.route) {
+                        popUpTo(Routes.Splash.route) {
+                            inclusive = true
+                        }
+                    }
+                },
+                onNavigateToLogin = {
+                    navController.navigate(Routes.Login.route) {
                         popUpTo(Routes.Splash.route) {
                             inclusive = true
                         }
@@ -68,9 +79,8 @@ fun AppNavigation() {
             HomeScreenWithNav(
                 homeViewModel = homeViewModel,
                 profileViewModel = profileViewModel,
-                onProductClick = { _ ->
-                    // TODO: Navigate to product detail screen
-                    // navController.navigate(Routes.ProductDetail.route + "/$productId")
+                onProductClick = { productId ->
+                    navController.navigate(Routes.ProductDetail.route + "/$productId")
                 },
                 onAddToCartClick = { _ ->
                     // Check if user is logged in
@@ -158,6 +168,23 @@ fun AppNavigation() {
                 },
                 onCheckoutClick = {
                     // TODO: Navigate to checkout screen
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable(
+            route = Routes.ProductDetail.route + "/{productId}",
+            arguments = listOf(
+                navArgument("productId") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val productId = backStackEntry.arguments?.getString("productId") ?: ""
+            val detailViewModel: ProductDetailViewModel = hiltViewModel()
+            ProductDetailScreen(
+                productId = productId,
+                viewModel = detailViewModel,
+                onBackClick = {
                     navController.popBackStack()
                 }
             )

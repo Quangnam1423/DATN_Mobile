@@ -1,6 +1,7 @@
 package com.example.datn_mobile.data.network.api
 
 import com.example.datn_mobile.data.network.dto.ApiResponse
+import com.squareup.moshi.JsonClass
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -49,6 +50,7 @@ interface CartApiService {
  * Response từ API thêm vào giỏ / xem giỏ hàng
  * Mỗi item đại diện 1 sản phẩm trong giỏ
  */
+@JsonClass(generateAdapter = true)
 data class CartItemResponse(
     val id: String,                  // ID CartItem (dùng khi place order)
     val attId: String,               // ID ProductAttribute
@@ -63,6 +65,7 @@ data class CartItemResponse(
 /**
  * Request body cho API Place Order
  */
+@JsonClass(generateAdapter = true)
 data class PlaceOrderRequest(
     val phoneNumber: String,         // Số điện thoại giao hàng (bắt buộc)
     val email: String,               // Email giao hàng (bắt buộc)
@@ -75,6 +78,7 @@ data class PlaceOrderRequest(
 /**
  * Item trong PlaceOrderRequest
  */
+@JsonClass(generateAdapter = true)
 data class PlaceOrderItemRequest(
     val cartItemId: String,          // ID từ giỏ hàng
     val productAttId: String,        // ID ProductAttribute
@@ -84,6 +88,7 @@ data class PlaceOrderItemRequest(
 /**
  * Response từ API Place Order / My Orders
  */
+@JsonClass(generateAdapter = true)
 data class OrderDetailsResponse(
     val id: String,                  // ID đơn hàng
     val userName: String,            // Tên người dùng
@@ -100,6 +105,7 @@ data class OrderDetailsResponse(
 /**
  * Item trong OrderDetailsResponse
  */
+@JsonClass(generateAdapter = true)
 data class OrderItemResponse(
     val productAttName: String,      // Tên biến thể
     val quantity: Int,               // Số lượng

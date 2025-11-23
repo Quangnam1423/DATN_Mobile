@@ -3,6 +3,7 @@ package com.example.datn_mobile.data.repository
 import com.example.datn_mobile.data.network.api.ProductApiService
 import com.example.datn_mobile.data.util.Resource
 import com.example.datn_mobile.domain.model.Product
+import com.example.datn_mobile.domain.model.ProductDetail
 import com.example.datn_mobile.domain.repository.ProductRepository
 import retrofit2.HttpException
 import java.io.IOException
@@ -33,13 +34,13 @@ class ProductRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getProductDetail(productId: String): Resource<Product> {
+    override suspend fun getProductDetail(productId: String): Resource<ProductDetail> {
         return try {
             val response = apiService.getProductDetail(productId)
             if (response.isSuccessful) {
-                val homeResponse = response.body()
-                if (homeResponse?.result?.isNotEmpty() == true) {
-                    Resource.Success(homeResponse.result[0])
+                val detailResponse = response.body()
+                if (detailResponse?.result != null) {
+                    Resource.Success(detailResponse.result)
                 } else {
                     Resource.Error("Product not found")
                 }
@@ -54,5 +55,21 @@ class ProductRepositoryImpl @Inject constructor(
             Resource.Error("Unknown error: ${e.message}")
         }
     }
-}
 
+    override suspend fun addToCart(attId: String): Resource<Any> {
+        return try {
+            val response = apiService.addToCart(attId)
+            if (response.isSuccessful) {
+                Resource.Success(response.body()!!)
+            } else {
+                Resource.Error("Failed to add to cart: ${response.message()}")
+            }
+        } catch (e: HttpException) {
+            Resource.Error("Network error: ${e.message()}")
+        } catch (e: IOException) {
+            Resource.Error("Connection error: ${e.message}")
+        } catch (e: Exception) {
+            Resource.Error("Unknown error: ${e.message}")
+        }
+    }
+}

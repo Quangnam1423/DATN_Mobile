@@ -10,6 +10,7 @@ sealed class Routes(val route: String) {
     object Profile : Routes("profile_screen")
     object EditProfile : Routes("edit_profile_screen")
     object Cart : Routes("cart_screen")
+    object ProductDetail : Routes("product_detail_screen")
     object Detail : Routes("detail_screen/{itemId}") {
         fun createRoute(itemId: String) = "detail_screen/$itemId"
     }

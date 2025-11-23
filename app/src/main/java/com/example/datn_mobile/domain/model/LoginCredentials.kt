@@ -4,3 +4,4 @@ data class LoginCredentials(
     val phoneNumber: String,
     val password: String
 )
+

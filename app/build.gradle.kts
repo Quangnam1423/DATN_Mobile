@@ -79,6 +79,7 @@ dependencies {
     // --- JSON parsing ---
     implementation(libs.moshi)
     implementation(libs.moshi.kotlin)
+    ksp(libs.moshi.kotlin.codegen)
     implementation(libs.kotlinx.serialization)
     // ------- data store ---------
     implementation(libs.datastore.preferences)

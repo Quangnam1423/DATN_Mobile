@@ -1,144 +1,77 @@
 package com.example.datn_mobile.data.repository
 
-import com.example.datn_mobile.data.local.PreferenceDataSource
 import com.example.datn_mobile.data.network.api.AuthApiService
-import com.example.datn_mobile.data.network.dto.ErrorResponse
-import com.example.datn_mobile.data.network.dto.LoginRequest
-import com.example.datn_mobile.data.network.dto.RegisterRequest
-import com.example.datn_mobile.data.network.dto.RegisterResponse
+import com.example.datn_mobile.data.network.dto.LoginRequest as LoginRequestDto
+import com.example.datn_mobile.data.network.dto.RegisterRequest as RegisterRequestDto
 import com.example.datn_mobile.data.network.dto.toUserProfile
 import com.example.datn_mobile.data.util.Resource
-import com.example.datn_mobile.domain.model.LoginCredentials
 import com.example.datn_mobile.domain.model.RegisterCredentials
+import com.example.datn_mobile.domain.model.UserCredentials
 import com.example.datn_mobile.domain.model.UserProfile
 import com.example.datn_mobile.domain.repository.AuthRepository
-import com.squareup.moshi.Moshi
-import retrofit2.HttpException
-import java.io.IOException
+import com.example.datn_mobile.domain.repository.UserPreferencesRepository
+import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
 class AuthRepositoryImpl @Inject constructor(
-    private val authApiService: AuthApiService,
-    private val prefs: PreferenceDataSource,
-    private val moshi: Moshi
+    private val authApi: AuthApiService,
+    private val prefsRepo: UserPreferencesRepository
 ) : AuthRepository {
 
-    override suspend fun login(credentials: LoginCredentials): Resource<Unit> {
+    override suspend fun login(phoneNumber: String, password: String): Resource<Unit> {
         return try {
-            val loginRequest = LoginRequest(
-                phoneNumber = credentials.phoneNumber,
-                password = credentials.password
-            )
-
-            val response = authApiService.login(loginRequest)
-
-            if (response.isSuccessful) {
-                val loginResponse = response.body()
-                val token = loginResponse?.result?.token
-
-                if (token != null) {
-                    prefs.saveToken(token)
-                    Resource.Success(Unit)
-                } else {
-                    Resource.Error("Login response body is empty or token is null")
-                }
+            val response = authApi.login(LoginRequestDto(phoneNumber, password))
+            if (response.isSuccessful && response.body()?.result != null) {
+                val token = response.body()!!.result!!.token
+                prefsRepo.saveAuthToken(token)
+                prefsRepo.saveUserCredentials(UserCredentials(phoneNumber, password))
+                Resource.Success(Unit)
             } else {
-                Resource.Error("Login failed: ${response.message()}")
+                Resource.Error(response.message() ?: "Login failed")
             }
-        } catch (e: HttpException) {
-            Resource.Error("Network error: ${e.message()}")
-        } catch (e: IOException) {
-            Resource.Error("Connection error: ${e.message}")
         } catch (e: Exception) {
-            Resource.Error("Unknown error: ${e.message}")
+            Resource.Error(e.message ?: "An error occurred")
         }
     }
 
     override suspend fun register(credentials: RegisterCredentials): Resource<UserProfile> {
         return try {
-            val request = RegisterRequest(
+            val registerRequestDto = RegisterRequestDto(
                 phoneNumber = credentials.phoneNumber,
-                password = credentials.password
+                password = credentials.password,
+                role = credentials.role ?: "USER"
             )
-
-            val response = authApiService.register(request)
-
-            if (response.isSuccessful) {
-                val registerResponse = response.body()
-
-                if (registerResponse != null) {
-                    Resource.Success(registerResponse.toUserProfile())
+            val response = authApi.register(registerRequestDto)
+            if (response.isSuccessful && response.body() != null) {
+                val registerResponse = response.body()!!
+                if (registerResponse.code == 1000) {
+                    val userProfile = registerResponse.toUserProfile()
+                    Resource.Success(userProfile)
                 } else {
-                    Resource.Error("Register response body or result is null")
+                    Resource.Error("Registration failed with code: ${registerResponse.code}")
                 }
             } else {
-                // Parse error response to get error code
-                val errorBody = response.errorBody()?.string()
-                var errorMessage = "Register failed: ${response.message()}"
-
-                if (!errorBody.isNullOrEmpty()) {
-                    try {
-                        val adapter = moshi.adapter(ErrorResponse::class.java)
-                        val errorResponse = adapter.fromJson(errorBody)
-
-                        errorMessage = when (errorResponse?.code) {
-                            1002 -> "Số điện thoại đã tồn tại"
-                            else -> errorResponse?.message ?: "Đăng ký thất bại"
-                        }
-                    } catch (e: Exception) {
-                        // If parsing fails, use generic error message
-                    }
-                }
-
-                Resource.Error(errorMessage)
+                Resource.Error(response.message() ?: "Registration failed")
             }
-
-        } catch (e: HttpException) {
-            Resource.Error("Network error: ${e.message()}")
-        } catch (e: IOException) {
-            Resource.Error("Connection error: ${e.message}")
         } catch (e: Exception) {
-            Resource.Error("Unknown error: ${e.message}")
+            Resource.Error(e.message ?: "An error occurred")
         }
     }
 
-    override suspend fun saveToken(token: String) {
-        prefs.saveToken(token)
+    override suspend fun logout() {
+        try {
+            authApi.logout()
+        } catch (e: Exception) {
+            // Ignore errors on logout
+        }
+        prefsRepo.clearAll()
+    }
+
+    override fun getAuthToken(): Flow<String?> {
+        return prefsRepo.authToken
+    }
+
+    override suspend fun clearAuthToken() {
+        prefsRepo.clearAll()
     }
 }
-//    override val tokenFlow: Flow<String?>
-//        get() = prefs.tokenFlow
-//
-//    override val hasValidTokenFlow: Flow<Boolean>
-//        get() = prefs.tokenFlow.map { !it.isNullOrBlank() }
-//
-//    override suspend fun logout() {
-//        prefs.clearToken()
-//    }
-//
-//    override suspend fun verifyToken(token: String): Boolean {
-//        return try {
-//            // 🔹 Giả lập gọi API kiểm tra token
-//            // Thực tế bạn nên gọi Retrofit hoặc HttpClient ở đây
-//            val isValid = token.startsWith("token_") && token.length > 10
-//
-//            // Nếu hợp lệ, giữ lại token
-//            if (isValid) {
-//                prefs.saveToken(token)
-//            } else {
-//                prefs.clearToken()
-//            }
-//
-//            isValid
-//        } catch (e: Exception) {
-//            prefs.clearToken()
-//            false
-//        }
-//    }
-//
-//    override suspend fun clearToken() {
-//        prefs.clearToken()
-//    }
-// }

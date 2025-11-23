@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.datn_mobile.data.local.PreferenceDataSource
 import com.example.datn_mobile.data.util.Resource
-import com.example.datn_mobile.domain.model.LoginCredentials
+import com.example.datn_mobile.domain.model.UserCredentials
 import com.example.datn_mobile.domain.usecase.LoginUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -35,7 +35,7 @@ class LoginViewModel @Inject constructor (
         viewModelScope.launch {
             _loginState.value = LoginState(isLoading = true)
 
-            val credentials = LoginCredentials(email, password)
+            val credentials = UserCredentials(email, password)
 
             // call LoginUseCase to handle login logic
             when (val result = loginUseCase(credentials)) {

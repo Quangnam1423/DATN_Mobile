@@ -2,6 +2,7 @@ package com.example.datn_mobile.presentation.screen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -12,19 +13,22 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.datn_mobile.presentation.viewmodel.AuthState
 import com.example.datn_mobile.presentation.viewmodel.SplashViewModel
 
 @Composable
 fun SplashScreen(
     viewModel: SplashViewModel,
-    onNavigateToHome: () -> Unit
+    onNavigateToHome: () -> Unit,
+    onNavigateToLogin: () -> Unit
 ) {
-    val navigateToHome = viewModel.navigateToHome.collectAsState()
+    val authState = viewModel.authState.collectAsState()
 
-    // Navigate to Home when timer completes
-    LaunchedEffect(navigateToHome.value) {
-        if (navigateToHome.value) {
-            onNavigateToHome()
+    LaunchedEffect(authState.value) {
+        when (authState.value) {
+            is AuthState.Authenticated -> onNavigateToHome()
+            is AuthState.Unauthenticated -> onNavigateToLogin()
+            else -> {}
         }
     }
 
@@ -39,22 +43,26 @@ fun SplashScreen(
             verticalArrangement = Arrangement.Center,
             modifier = Modifier.fillMaxSize()
         ) {
-            // App Logo or Title
-            Text(
-                text = "DATN Mobile",
-                fontSize = 36.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.Black,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
+            if (authState.value is AuthState.Loading) {
+                CircularProgressIndicator()
+            } else {
+                // App Logo or Title
+                Text(
+                    text = "DATN Mobile",
+                    fontSize = 36.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
 
-            // Subtitle
-            Text(
-                text = "Chào mừng bạn",
-                fontSize = 16.sp,
-                color = Color.Gray,
-                modifier = Modifier.padding(bottom = 32.dp)
-            )
+                // Subtitle
+                Text(
+                    text = "Chào mừng bạn",
+                    fontSize = 16.sp,
+                    color = Color.Gray,
+                    modifier = Modifier.padding(bottom = 32.dp)
+                )
+            }
         }
     }
 }
