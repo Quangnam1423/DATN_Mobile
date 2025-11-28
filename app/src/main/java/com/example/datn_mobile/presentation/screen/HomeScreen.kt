@@ -178,7 +178,9 @@ fun ProductCard(
             // 3. Giá sản phẩm
             Column {
                 // Giá bán (finalPrice)
-                val displayPrice = product.variant.finalPrice ?: product.variant.price ?: 0L
+                val displayPrice = ((product.variant.finalPrice
+                    ?: product.variant.price
+                    ?: 0.0)).toLong()
                 Text(
                     text = "${String.format(Locale.US, "%,d", displayPrice)} đ",
                     fontSize = 14.sp,
@@ -192,8 +194,9 @@ fun ProductCard(
 
                     Spacer(modifier = Modifier.height(4.dp))
 
+                    val originalPrice = (product.variant.originalPrice ?: 0.0).toLong()
                     Text(
-                        text = "${String.format(Locale.US, "%,d", product.variant.originalPrice)} đ",
+                        text = "${String.format(Locale.US, "%,d", originalPrice)} đ",
                         fontSize = 11.sp,
                         color = Color.Gray,
                         textDecoration = TextDecoration.LineThrough

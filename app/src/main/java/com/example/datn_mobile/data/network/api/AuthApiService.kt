@@ -15,7 +15,7 @@ interface AuthApiService {
     suspend fun login(@Body loginRequest: LoginRequest): Response<LoginResponse>
 
     @NoAuth
-    @POST("/bej3/auth/register")
+    @POST("/bej3/users/create")
     suspend fun register(@Body credentials: RegisterRequest): Response<RegisterResponse>
 
     @POST("/bej3/auth/logout")

@@ -37,6 +37,8 @@ class AuthRepositoryImpl @Inject constructor(
     override suspend fun register(credentials: RegisterCredentials): Resource<UserProfile> {
         return try {
             val registerRequestDto = RegisterRequestDto(
+                fullName = credentials.fullName,
+                email = credentials.email,
                 phoneNumber = credentials.phoneNumber,
                 password = credentials.password,
                 role = credentials.role ?: "USER"

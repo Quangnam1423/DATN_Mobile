@@ -8,6 +8,8 @@ import com.squareup.moshi.JsonClass
  */
 @JsonClass(generateAdapter = true)
 data class RegisterRequest(
+    @field:Json(name="fullName") val fullName: String,
+    @field:Json(name="email") val email: String,
     @field:Json(name="phoneNumber") val phoneNumber: String,
     @field:Json(name="password") val password: String,
     @field:Json(name="role") val role: String = "USER" // default value

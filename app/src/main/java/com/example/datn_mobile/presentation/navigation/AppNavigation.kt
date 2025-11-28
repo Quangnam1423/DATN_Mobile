@@ -155,6 +155,9 @@ fun AppNavigation() {
             EditProfileScreen(
                 onBackClick = {
                     navController.popBackStack()
+                },
+                onNavigateToProfile = {
+                    navController.popBackStack()
                 }
             )
         }

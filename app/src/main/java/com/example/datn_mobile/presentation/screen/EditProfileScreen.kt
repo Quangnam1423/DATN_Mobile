@@ -41,9 +41,17 @@ import com.example.datn_mobile.utils.MessageManager
 @Composable
 fun EditProfileScreen(
     viewModel: EditProfileViewModel = hiltViewModel(),
-    onBackClick: () -> Unit = {}
+    onBackClick: () -> Unit = {},
+    onNavigateToProfile: () -> Unit = {}
 ) {
     val editProfileState by viewModel.editProfileState.collectAsState()
+
+    LaunchedEffect(editProfileState.isProfileUpdated) {
+        if (editProfileState.isProfileUpdated) {
+            onNavigateToProfile()
+            viewModel.consumeProfileUpdatedEvent()
+        }
+    }
 
     Scaffold { paddingValues ->
         Box(

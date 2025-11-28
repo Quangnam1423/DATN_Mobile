@@ -1,6 +1,8 @@
 package com.example.datn_mobile.presentation.screen
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -8,14 +10,17 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -36,6 +41,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.datn_mobile.presentation.viewmodel.LoginState
 import com.example.datn_mobile.presentation.viewmodel.LoginViewModel
+import com.example.datn_mobile.presentation.theme.LightPeachPink
+import com.example.datn_mobile.presentation.theme.PeachPinkAccent
 import com.example.compose.DATN_MobileTheme
 
 @Composable
@@ -82,18 +89,22 @@ fun LoginContent (
     var password by remember {mutableStateOf("")}
 
     Column(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White)
     ) {
         // Header with back button
-        Row(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 8.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .padding(horizontal = 8.dp, vertical = 12.dp)
         ) {
+            // Back button on the left
             IconButton(
                 onClick = onBackClick,
-                modifier = Modifier.padding(0.dp)
+                modifier = Modifier
+                    .align(Alignment.CenterStart)
+                    .padding(0.dp)
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -102,14 +113,14 @@ fun LoginContent (
                 )
             }
 
+            // Title centered
             Text(
                 text = "Đăng Nhập",
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.Black,
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(start = 8.dp)
+                color = PeachPinkAccent,
+                modifier = Modifier.align(Alignment.Center),
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
             )
         }
 
@@ -118,104 +129,182 @@ fun LoginContent (
             modifier = Modifier
                 .fillMaxSize()
                 .weight(1f)
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+                .padding(horizontal = 24.dp),
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.Start
         ) {
-            Spacer(modifier = Modifier.height(0.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
-        OutlinedTextField(
-            value = phoneNumber,
-            onValueChange = {phoneNumber = it},
-            label = {Text("Số Điện Thoại")},
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        OutlinedTextField(
-            value = password,
-            onValueChange = {password = it},
-            label = {Text("Mật Khẩu")},
-            singleLine = true,
-            visualTransformation = PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Forgot password link
-        Row(
-            modifier = Modifier
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.End
-        ) {
-            androidx.compose.material3.TextButton(
-                onClick = onNavigateToForgotPassword
-            ) {
-                Text(
-                    text = "Quên mật khẩu?",
-                    fontSize = 12.sp,
-                    color = Color(0xFF2196F3)
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Button(
-            onClick = {
-                onLoginClicked(phoneNumber, password)
-            },
-            enabled = !state.isLoading,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Đăng Nhập")
-        }
-
-        if (state.isLoading) {
-            Spacer(modifier = Modifier.height(16.dp))
-            CircularProgressIndicator()
-        }
-
-        if (state.errorMessage != null) {
-            Spacer(modifier = Modifier.height(16.dp))
+            // Welcome message
             Text(
-                text = state.errorMessage,
-                color = Color.Red
+                text = "Rất Vui Gặp Lại Bạn",
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black,
+                modifier = Modifier.padding(bottom = 8.dp)
             )
-        }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Register section
-        Row(
-            modifier = Modifier
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
             Text(
-                text = "Chưa có tài khoản?",
+                text = "Vui lòng điền các thông tin bên dưới để tiếp tục",
                 fontSize = 14.sp,
-                color = Color.Gray
+                color = Color.Gray,
+                modifier = Modifier.padding(bottom = 32.dp)
             )
-            Spacer(modifier = Modifier.padding(horizontal = 4.dp))
-            androidx.compose.material3.TextButton(
-                onClick = onNavigateToRegister,
-                modifier = Modifier.padding(0.dp)
+
+            // Phone number field
+            Text(
+                text = "Số Điện Thoại",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                color = Color.Black,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+            
+            OutlinedTextField(
+                value = phoneNumber,
+                onValueChange = {phoneNumber = it},
+                label = null,
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = LightPeachPink,
+                    unfocusedContainerColor = LightPeachPink,
+                    focusedBorderColor = Color.Transparent,
+                    unfocusedBorderColor = Color.Transparent,
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Black
+                ),
+                textStyle = androidx.compose.ui.text.TextStyle(
+                    fontSize = 16.sp
+                )
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Password field
+            Text(
+                text = "Mật Khẩu",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                color = Color.Black,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+            
+            OutlinedTextField(
+                value = password,
+                onValueChange = {password = it},
+                label = null,
+                singleLine = true,
+                visualTransformation = PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = LightPeachPink,
+                    unfocusedContainerColor = LightPeachPink,
+                    focusedBorderColor = Color.Transparent,
+                    unfocusedBorderColor = Color.Transparent,
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Black
+                ),
+                textStyle = androidx.compose.ui.text.TextStyle(
+                    fontSize = 16.sp
+                )
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Forgot password link
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                androidx.compose.material3.TextButton(
+                    onClick = onNavigateToForgotPassword,
+                    modifier = Modifier.padding(0.dp)
+                ) {
+                    Text(
+                        text = "Quên mật khẩu?",
+                        fontSize = 14.sp,
+                        color = Color.Red
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Button(
+                onClick = {
+                    onLoginClicked(phoneNumber, password)
+                },
+                enabled = !state.isLoading,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = PeachPinkAccent,
+                    contentColor = Color.White,
+                    disabledContainerColor = Color.Gray,
+                    disabledContentColor = Color.White
+                )
             ) {
                 Text(
-                    text = "Đăng ký ngay",
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF2196F3)
+                    text = "Đăng Nhập",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold
                 )
             }
-        }
+
+            if (state.isLoading) {
+                Spacer(modifier = Modifier.height(16.dp))
+                CircularProgressIndicator(
+                    color = PeachPinkAccent
+                )
+            }
+
+            if (state.errorMessage != null) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = state.errorMessage,
+                    color = Color.Red,
+                    fontSize = 14.sp
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Register section
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Chưa có tài khoản? ",
+                    fontSize = 14.sp,
+                    color = Color.Gray
+                )
+                androidx.compose.material3.TextButton(
+                    onClick = onNavigateToRegister,
+                    modifier = Modifier.padding(0.dp)
+                ) {
+                    Text(
+                        text = "Đăng ký",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color.Red
+                    )
+                }
+            }
         }
     }
 }

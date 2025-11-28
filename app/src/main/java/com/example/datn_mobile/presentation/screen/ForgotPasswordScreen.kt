@@ -1,6 +1,8 @@
 package com.example.datn_mobile.presentation.screen
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -8,13 +10,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -28,6 +33,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.datn_mobile.presentation.theme.LightPeachPink
+import com.example.datn_mobile.presentation.theme.PeachPinkAccent
 import com.example.compose.DATN_MobileTheme
 
 @Composable
@@ -52,18 +59,22 @@ fun ForgotPasswordContent(
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
     Column(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White)
     ) {
         // Header with back button
-        Row(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 8.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .padding(horizontal = 8.dp, vertical = 12.dp)
         ) {
+            // Back button on the left
             IconButton(
                 onClick = onBackClick,
-                modifier = Modifier.padding(0.dp)
+                modifier = Modifier
+                    .align(Alignment.CenterStart)
+                    .padding(0.dp)
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -72,14 +83,14 @@ fun ForgotPasswordContent(
                 )
             }
 
+            // Title centered
             Text(
                 text = "Quên Mật Khẩu",
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.Black,
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(start = 8.dp)
+                color = PeachPinkAccent,
+                modifier = Modifier.align(Alignment.Center),
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
             )
         }
 
@@ -88,13 +99,15 @@ fun ForgotPasswordContent(
             modifier = Modifier
                 .fillMaxSize()
                 .weight(1f)
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+                .padding(horizontal = 24.dp),
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.Start
         ) {
+            Spacer(modifier = Modifier.height(32.dp))
+
             // Instructions
             Text(
-                text = "Nhập địa chỉ email của bạn để nhận hướng dẫn đặt lại mật khẩu",
+                text = "Nhập lại thông tin liên quan để nhận hướng dẫn đặt lại mật khẩu",
                 fontSize = 14.sp,
                 color = Color.Gray,
                 modifier = Modifier
@@ -102,16 +115,46 @@ fun ForgotPasswordContent(
                     .padding(bottom = 24.dp)
             )
 
+            // Email field label
+            Text(
+                text = "Email hoặc Số điện thoại",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                color = Color.Black,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+
             // Email field
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
-                label = { Text("Email hoặc Tên Đăng Nhập") },
+                label = null,
                 singleLine = true,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = LightPeachPink,
+                    unfocusedContainerColor = LightPeachPink,
+                    focusedBorderColor = Color.Transparent,
+                    unfocusedBorderColor = Color.Transparent,
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Black
+                ),
+                textStyle = androidx.compose.ui.text.TextStyle(
+                    fontSize = 16.sp
+                ),
+                placeholder = {
+                    Text(
+                        text = "Vui lòng điền vào đây",
+                        color = Color.Gray,
+                        fontSize = 16.sp
+                    )
+                }
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
             // Reset button
             Button(
@@ -129,7 +172,16 @@ fun ForgotPasswordContent(
                     }
                 },
                 enabled = !isLoading,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = PeachPinkAccent,
+                    contentColor = Color.White,
+                    disabledContainerColor = Color.Gray,
+                    disabledContentColor = Color.White
+                )
             ) {
                 if (isLoading) {
                     CircularProgressIndicator(
@@ -138,7 +190,11 @@ fun ForgotPasswordContent(
                         color = Color.White
                     )
                 } else {
-                    Text("Gửi Hướng Dẫn")
+                    Text(
+                        text = "Gửi Hướng Dẫn",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
 
@@ -148,7 +204,7 @@ fun ForgotPasswordContent(
                 Text(
                     text = message,
                     color = Color(0xFF4CAF50),
-                    fontSize = 12.sp
+                    fontSize = 14.sp
                 )
             }
 
@@ -157,21 +213,27 @@ fun ForgotPasswordContent(
                 Text(
                     text = message,
                     color = Color.Red,
-                    fontSize = 12.sp
+                    fontSize = 14.sp
                 )
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
             // Back to login link
-            androidx.compose.material3.TextButton(
-                onClick = onBackClick
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
             ) {
-                Text(
-                    text = "Quay lại Đăng Nhập",
-                    fontSize = 14.sp,
-                    color = Color(0xFF2196F3)
-                )
+                androidx.compose.material3.TextButton(
+                    onClick = onBackClick,
+                    modifier = Modifier.padding(0.dp)
+                ) {
+                    Text(
+                        text = "Quay lại Đăng Nhập",
+                        fontSize = 14.sp,
+                        color = Color.Red
+                    )
+                }
             }
         }
     }
