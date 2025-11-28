@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.datn_mobile.presentation.viewmodel.AuthState
 import com.example.datn_mobile.presentation.viewmodel.SplashViewModel
+import kotlinx.coroutines.delay
 
 // Soft peach-pink background color
 val SplashBackgroundColor = Color(0xFFFFE5D4)
@@ -34,7 +35,10 @@ fun SplashScreen(
 ) {
     val authState = viewModel.authState.collectAsState()
 
-    LaunchedEffect(authState.value) {
+    LaunchedEffect(Unit) {
+        // Đợi 3 giây trước khi điều hướng
+        delay(3000)
+        
         when (authState.value) {
             is AuthState.Authenticated -> onNavigateToHome()
             is AuthState.Unauthenticated -> onNavigateToLogin()
@@ -143,7 +147,6 @@ fun SplashScreen(
                 )
             }
             
-            // PTIT text - bold, uppercase, white
             Text(
                 text = "PTIT",
                 fontSize = 42.sp,
@@ -153,9 +156,8 @@ fun SplashScreen(
                 modifier = Modifier.padding(bottom = 8.dp)
             )
             
-            // ESHOPP text - smaller, lighter weight, uppercase, white with letter spacing
             Text(
-                text = "ESHOPP",
+                text = "E-PHONE SHOPPING",
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Light,
                 color = Color.White,

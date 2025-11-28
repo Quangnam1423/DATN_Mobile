@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.datn_mobile.domain.model.Product
+import com.example.datn_mobile.presentation.theme.PeachPinkAccent
 import com.example.datn_mobile.presentation.viewmodel.HomeViewModel
 import java.util.Locale
 import com.example.datn_mobile.utils.MessageManager
@@ -54,6 +55,7 @@ fun HomeScreen(
             text = "Cửa hàng",
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
+            color = PeachPinkAccent,
             modifier = Modifier.padding(16.dp)
         )
 
@@ -95,7 +97,10 @@ fun HomeScreen(
                         color = Color.Gray,
                         modifier = Modifier.padding(bottom = 16.dp)
                     )
-                    Button(onClick = { viewModel.loadProducts() }) {
+                    Button(
+                        onClick = { viewModel.loadProducts() },
+                        colors = ButtonDefaults.buttonColors(containerColor = PeachPinkAccent)
+                    ) {
                         Text("Tải lại")
                     }
                 }
@@ -185,7 +190,7 @@ fun ProductCard(
                     text = "${String.format(Locale.US, "%,d", displayPrice)} đ",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.Red
+                    color = PeachPinkAccent
                 )
 
                 // Giá gốc (originalPrice) - chỉ hiển thị nếu có giảm giá
@@ -212,7 +217,7 @@ fun ProductCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(40.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6200EA))
+                colors = ButtonDefaults.buttonColors(containerColor = PeachPinkAccent)
             ) {
                 Text(
                     text = "Xem Chi Tiết",
@@ -225,12 +230,11 @@ fun ProductCard(
             Spacer(modifier = Modifier.height(8.dp))
 
             // 5. Ngày thêm sản phẩm (createDate)
-            Text(
-                text = "Ngày thêm: ${product.createDate}",
-                fontSize = 12.sp,
-                color = Color.Gray
-            )
+            // Text(
+            //     text = "Ngày thêm: ${product.createDate}",
+            //     fontSize = 12.sp,
+            //     color = Color.Gray
+            // )
         }
     }
 }
-

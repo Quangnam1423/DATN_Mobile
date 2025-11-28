@@ -11,8 +11,10 @@ import com.example.datn_mobile.presentation.register.RegisterScreen
 import com.example.datn_mobile.presentation.screen.CartScreen
 import com.example.datn_mobile.presentation.screen.EditProfileScreen
 import com.example.datn_mobile.presentation.screen.ForgotPasswordScreen
+import com.example.datn_mobile.presentation.screen.HelpScreen
 import com.example.datn_mobile.presentation.screen.HomeScreenWithNav
 import com.example.datn_mobile.presentation.screen.LoginScreen
+import com.example.datn_mobile.presentation.screen.PrivacyPolicyScreen
 import com.example.datn_mobile.presentation.screen.ProductDetailScreen
 import com.example.datn_mobile.presentation.screen.SearchScreen
 import com.example.datn_mobile.presentation.screen.SplashScreen
@@ -99,6 +101,12 @@ fun AppNavigation() {
                 onNavigateToCart = {
                     // TODO: Navigate to cart screen
                     navController.navigate(Routes.Cart.route)
+                },
+                onNavigateToHelp = {
+                    navController.navigate(Routes.Help.route)
+                },
+                onNavigateToPrivacyPolicy = {
+                    navController.navigate(Routes.PrivacyPolicy.route)
                 }
             )
         }
@@ -111,14 +119,13 @@ fun AppNavigation() {
                     navController.popBackStack()
                 },
                 onSearchSubmit = { _ ->
-                    // TODO: Navigate to search results screen with query
-                    // For now, just pop back
-                    navController.popBackStack()
+                    // Không cần điều hướng, SearchScreen sẽ hiển thị kết quả ngay
                 },
                 onRecentSearchClick = { _ ->
-                    // TODO: Navigate to search results screen with keyword
-                    // For now, just pop back
-                    navController.popBackStack()
+                    // Không cần điều hướng, SearchScreen sẽ hiển thị kết quả ngay
+                },
+                onProductClick = { productId ->
+                    navController.navigate(Routes.ProductDetail.route + "/$productId")
                 }
             )
         }
@@ -187,6 +194,22 @@ fun AppNavigation() {
             ProductDetailScreen(
                 productId = productId,
                 viewModel = detailViewModel,
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable(route = Routes.Help.route) {
+            HelpScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable(route = Routes.PrivacyPolicy.route) {
+            PrivacyPolicyScreen(
                 onBackClick = {
                     navController.popBackStack()
                 }

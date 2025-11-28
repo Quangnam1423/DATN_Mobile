@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -35,6 +36,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.datn_mobile.domain.model.Cart
 import com.example.datn_mobile.domain.model.CartItem
+import com.example.datn_mobile.presentation.theme.LightPeachPink
+import com.example.datn_mobile.presentation.theme.PeachPinkAccent
 import com.example.datn_mobile.presentation.viewmodel.CartViewModel
 
 @Composable
@@ -49,6 +52,7 @@ fun CartScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
+            .systemBarsPadding()
     ) {
         // Header
         CartHeader(onBackClick = onBackClick)
@@ -78,7 +82,7 @@ private fun CartHeader(onBackClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFF2196F3))
+            .background(PeachPinkAccent)
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
@@ -140,7 +144,7 @@ private fun EmptyCartScreen(onContinueShopping: () -> Unit) {
                 modifier = Modifier
                     .fillMaxWidth(0.7f)
                     .height(48.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2196F3))
+                colors = ButtonDefaults.buttonColors(containerColor = PeachPinkAccent)
             ) {
                 Text("Tiếp tục mua sắm")
             }
@@ -233,7 +237,7 @@ private fun CartItemCard(
                     text = "${(item.price * item.quantity).toFormattedPrice()} đ",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF2196F3)
+                    color = PeachPinkAccent
                 )
             }
         }
@@ -249,7 +253,7 @@ private fun CartSummary(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFFF5F5F5))
+            .background(LightPeachPink)
             .padding(16.dp)
     ) {
         // Summary items
@@ -274,7 +278,7 @@ private fun CartSummary(
                 "${cart.totalPrice.toFormattedPrice()} đ",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF2196F3)
+                color = PeachPinkAccent
             )
         }
 
@@ -287,7 +291,7 @@ private fun CartSummary(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(48.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2196F3))
+            colors = ButtonDefaults.buttonColors(containerColor = PeachPinkAccent)
         ) {
             Text(
                 text = if (isUpdating) "Đang cập nhật..." else "Thanh toán",

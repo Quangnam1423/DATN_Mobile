@@ -1,6 +1,7 @@
 package com.example.datn_mobile.presentation.screen
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,9 +13,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
@@ -28,12 +31,20 @@ import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
+import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.Text
+import androidx.compose.ui.layout.layout
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -48,9 +59,17 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import coil.compose.AsyncImage
+import com.example.datn_mobile.domain.model.Product
+import com.example.datn_mobile.presentation.theme.PeachPinkAccent
 import com.example.datn_mobile.presentation.viewmodel.HomeViewModel
 import com.example.datn_mobile.presentation.viewmodel.ProfileViewModel
 import com.example.datn_mobile.utils.MessageManager
+import java.util.Locale
 
 enum class BottomNavItem(
     val route: String,
@@ -73,7 +92,9 @@ fun HomeScreenWithNav(
     onNavigateToLogin: () -> Unit,
     onNavigateToEditProfile: () -> Unit,
     onNavigateToCart: () -> Unit,
-    onAddToCartClick: (String) -> Unit
+    onAddToCartClick: (String) -> Unit,
+    onNavigateToHelp: () -> Unit = {},
+    onNavigateToPrivacyPolicy: () -> Unit = {}
 ) {
     var selectedBottomItem by remember { mutableStateOf(BottomNavItem.HOME) }
     val profileState = profileViewModel.profileState.collectAsState()
@@ -195,7 +216,9 @@ fun HomeScreenWithNav(
                         onEditProfileClick = {
                             // Navigate to Edit Profile Screen
                             onNavigateToEditProfile()
-                        }
+                        },
+                        onNavigateToHelp = onNavigateToHelp,
+                        onNavigateToPrivacyPolicy = onNavigateToPrivacyPolicy
                     )
                 }
                 BottomNavItem.CART -> {
@@ -219,6 +242,7 @@ fun HomeScreenContent(
     val state = homeState.value
     val profileState = profileViewModel.profileState.collectAsState()
     val isAuthenticated = profileState.value.isAuthenticated
+    var selectedTab by remember { mutableStateOf(0) }
 
     // Show error message when error occurs
     LaunchedEffect(state.error) {
@@ -236,7 +260,7 @@ fun HomeScreenContent(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color(0xFF2196F3))
+                    .background(PeachPinkAccent)
                     .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -264,24 +288,19 @@ fun HomeScreenContent(
 
                     Spacer(modifier = Modifier.size(12.dp))
 
-                    // User Info
-                    Column(
+                    // User Info - chỉ hiển thị tên cuối cùng
+                    val displayName = profile.fullName?.let { fullName ->
+                        fullName.trim().split(" ").lastOrNull() ?: fullName
+                    } ?: "Người dùng"
+                    
+                    Text(
+                        text = "Xin chào, $displayName!",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        maxLines = 1,
                         modifier = Modifier.weight(1f)
-                    ) {
-                        Text(
-                            text = profile.fullName ?: "Người dùng",
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White,
-                            maxLines = 1
-                        )
-                        Text(
-                            text = "ID: ${profile.id.take(8)}...",
-                            fontSize = 12.sp,
-                            color = Color.White.copy(alpha = 0.8f),
-                            maxLines = 1
-                        )
-                    }
+                    )
                 }
 
                 // Profile Button
@@ -308,8 +327,27 @@ fun HomeScreenContent(
             text = "Cửa hàng",
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(16.dp)
+            color = PeachPinkAccent,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp)
         )
+
+        // Tab Row
+        TabRow(
+            selectedTabIndex = selectedTab,
+            containerColor = Color.White,
+            contentColor = PeachPinkAccent
+        ) {
+            Tab(
+                selected = selectedTab == 0,
+                onClick = { selectedTab = 0 },
+                text = { Text("Home", color = if (selectedTab == 0) PeachPinkAccent else Color.Gray) }
+            )
+            Tab(
+                selected = selectedTab == 1,
+                onClick = { selectedTab = 1 },
+                text = { Text("Category", color = if (selectedTab == 1) PeachPinkAccent else Color.Gray) }
+            )
+        }
 
         // Loading state
         if (state.isLoading) {
@@ -349,7 +387,10 @@ fun HomeScreenContent(
                         color = Color.Gray,
                         modifier = Modifier.padding(bottom = 16.dp)
                     )
-                    Button(onClick = { viewModel.loadProducts() }) {
+                    Button(
+                        onClick = { viewModel.loadProducts() },
+                        colors = ButtonDefaults.buttonColors(containerColor = PeachPinkAccent)
+                    ) {
                         Text("Tải lại")
                     }
                 }
@@ -357,19 +398,256 @@ fun HomeScreenContent(
             return@Column
         }
 
-        // Products list
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            items(state.products) { product ->
-                ProductCard(
-                    product = product,
+        // Content based on selected tab
+        when (selectedTab) {
+            0 -> {
+                // Home tab - Hiển thị tất cả sản phẩm
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(state.products) { product ->
+                        ProductCard(
+                            product = product,
+                            onProductClick = onProductClick
+                        )
+                    }
+                }
+            }
+            1 -> {
+                // Category tab - Hiển thị danh mục
+                CategoryViewContent(
+                    products = state.products,
                     onProductClick = onProductClick
                 )
             }
         }
+    }
+}
+
+/**
+ * CategoryViewContent - Hiển thị danh sách danh mục sản phẩm
+ */
+@Composable
+fun CategoryViewContent(
+    products: List<Product>,
+    onProductClick: (String) -> Unit
+) {
+    // Extract categories from product names
+    val categories = remember(products) {
+        products.mapNotNull { product ->
+            extractCategoryFromName(product.name)
+        }.distinct().sorted().take(3) // Chỉ lấy 3 danh mục đầu tiên
+    }
+    
+    var selectedCategory by remember { mutableStateOf<String?>(null) }
+
+    if (categories.isEmpty()) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.padding(horizontal = 32.dp)
+            ) {
+                Text(
+                    text = "📂",
+                    fontSize = 48.sp,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+                Text(
+                    text = "Không có danh mục nào",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color.Gray
+                )
+            }
+        }
+        return
+    }
+
+    // Nếu đã chọn category, hiển thị sản phẩm của category đó
+    if (selectedCategory != null) {
+        val categoryProducts = products.filter { 
+            extractCategoryFromName(it.name) == selectedCategory 
+        }
+        
+        Column {
+            // Back button
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { selectedCategory = null }
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "← Quay lại",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = PeachPinkAccent
+                )
+            }
+            
+            // Category header
+            Text(
+                text = selectedCategory ?: "",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = PeachPinkAccent,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+            )
+            
+            // Products list
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(categoryProducts) { product ->
+                    ProductCard(
+                        product = product,
+                        onProductClick = onProductClick
+                    )
+                }
+            }
+        }
+        return
+    }
+
+    // Hiển thị danh sách các category cards (chỉ hiển thị tên, không hiển thị sản phẩm)
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        items(categories) { category ->
+            CategoryCardSimple(
+                categoryName = category,
+                productCount = products.count { extractCategoryFromName(it.name) == category },
+                onClick = { selectedCategory = category }
+            )
+        }
+    }
+}
+
+/**
+ * CategoryCardSimple - Hiển thị một danh mục đơn giản (chỉ tên và số lượng sản phẩm)
+ */
+@Composable
+fun CategoryCardSimple(
+    categoryName: String,
+    productCount: Int,
+    onClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = categoryName,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = PeachPinkAccent
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "$productCount sản phẩm",
+                    fontSize = 14.sp,
+                    color = Color.Gray
+                )
+            }
+            Text(
+                text = "→",
+                fontSize = 24.sp,
+                color = Color(0xFF6200EA),
+                fontWeight = FontWeight.Bold
+            )
+        }
+    }
+}
+
+/**
+ * CategoryProductItemContent - Hiển thị một sản phẩm trong danh mục
+ */
+@Composable
+fun CategoryProductItemContent(
+    product: Product,
+    onProductClick: (String) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onProductClick(product.id) }
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Product image
+        AsyncImage(
+            model = product.image,
+            contentDescription = product.name,
+            modifier = Modifier
+                .size(80.dp)
+                .weight(0.3f),
+            contentScale = ContentScale.Crop
+        )
+
+        Spacer(modifier = Modifier.width(12.dp))
+
+        // Product info
+        Column(
+            modifier = Modifier.weight(0.7f)
+        ) {
+            Text(
+                text = product.name,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 2
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            val displayPrice = ((product.variant.finalPrice
+                ?: product.variant.price
+                ?: 0.0)).toLong()
+            Text(
+                text = "${String.format(Locale.US, "%,d", displayPrice)} đ",
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Red
+            )
+        }
+    }
+}
+
+/**
+ * Extract category from product name
+ * Dựa vào tên sản phẩm để extract category
+ */
+private fun extractCategoryFromName(productName: String): String? {
+    val name = productName.lowercase()
+    return when {
+        name.contains("iphone") -> "Phone"
+        name.contains("dich vu dthoai") || name.contains("dịch vụ điện thoại") -> "Dịch Vụ Điện Thoại"
+        name.contains("phu kien dthoai") || name.contains("phụ kiện điện thoại") -> "Phụ Kiện Điện Thoại"
+//        name.contains("xiaomi") -> "Xiaomi"
+//        name.contains("samsung") -> "Samsung"
+//        name.contains("gaming") || name.contains("redmagic") -> "Điện Thoại Gaming"
+        else -> null
     }
 }
 
