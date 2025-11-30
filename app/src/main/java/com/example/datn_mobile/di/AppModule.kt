@@ -1,7 +1,10 @@
 package com.example.datn_mobile.di
 
 import android.content.Context
+import com.example.datn_mobile.config.ApiConfig
 import com.example.datn_mobile.data.local.PreferenceDataSource
+import com.example.datn_mobile.data.network.adapter.UnitJsonAdapter
+import com.example.datn_mobile.data.network.interceptor.AuthInterceptor
 import com.example.datn_mobile.data.repository.UserPreferencesRepositoryImpl
 import com.example.datn_mobile.domain.repository.UserPreferencesRepository
 import com.squareup.moshi.Moshi
@@ -17,6 +20,7 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
+import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
 @Module
@@ -27,31 +31,23 @@ object AppModule {
     @Singleton
     fun provideMoshi(): Moshi {
         return Moshi.Builder()
+            .add(Unit::class.java, UnitJsonAdapter())
             .add(KotlinJsonAdapterFactory())
             .build()
     }
 
     @Provides
     @Singleton
-    fun provideOkHttpClient(userPreferencesRepository: UserPreferencesRepository): OkHttpClient {
+    fun provideOkHttpClient(
+        loggingInterceptor: HttpLoggingInterceptor,
+        authInterceptor: AuthInterceptor
+    ): OkHttpClient {
         return OkHttpClient.Builder()
-            .addInterceptor(HttpLoggingInterceptor().apply {
-                level = HttpLoggingInterceptor.Level.BODY
-            })
-            .addInterceptor { chain ->
-                val token = runBlocking { userPreferencesRepository.authToken.firstOrNull() }
-                val request = chain.request().newBuilder()
-                if (token != null) {
-                    request.addHeader("Authorization", "Bearer $token")
-                }
-                val response = chain.proceed(request.build())
-                if (response.code >= 500) {
-                    runBlocking {
-                        userPreferencesRepository.clearAll()
-                    }
-                }
-                response
-            }
+            .connectTimeout(ApiConfig.CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .readTimeout(ApiConfig.READ_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .writeTimeout(ApiConfig.WRITE_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .addInterceptor(loggingInterceptor)
+            .addInterceptor(authInterceptor)
             .build()
     }
 
@@ -59,11 +55,16 @@ object AppModule {
     @Singleton
     fun provideRetrofit(okHttpClient: OkHttpClient, moshi: Moshi): Retrofit {
         return Retrofit.Builder()
-            .baseUrl("http://192.168.5.104:8080")
+            .baseUrl(ApiConfig.BASE_URL)
             .client(okHttpClient)
             .addConverterFactory(MoshiConverterFactory.create(moshi))
             .build()
     }
+
+    @Provides
+    @Singleton
+    fun provideLoggingInterceptor() =
+        HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BODY }
 
     @Provides
     @Singleton

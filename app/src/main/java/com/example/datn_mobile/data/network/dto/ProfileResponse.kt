@@ -13,7 +13,7 @@ data class ProfileResponseData(
     @field:Json(name="dob") val dob: String? = null,
     @field:Json(name="email") val email: String? = null,
     @field:Json(name="phoneNumber") val phoneNumber: String? = null,
-    @field:Json(name="roles") val roles: List<Any>? = null  // Can be String or RoleDto
+    @field:Json(name="roles") val roles: List<Any>? = null
 )
 
 @JsonClass(generateAdapter = true)

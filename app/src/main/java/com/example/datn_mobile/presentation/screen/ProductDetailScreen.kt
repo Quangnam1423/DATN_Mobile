@@ -32,27 +32,6 @@ import com.example.datn_mobile.presentation.viewmodel.ProductDetailViewModel
 import com.example.datn_mobile.utils.MessageManager
 import java.util.*
 
-/**
- * ProductDetailScreen - Chi tiết sản phẩm theo hướng dẫn PRODUCT_API_GUIDELINE
- *
- * Luồng:
- * 1. Nhận productId từ navigation
- * 2. Gọi GET /home/product/{productId}
- * 3. Hiển thị:
- *    - Ảnh đại diện (image)
- *    - Ảnh giới thiệu (introImages)
- *    - Tên sản phẩm
- *    - Danh sách variants (màu sắc)
- *    - Ảnh chi tiết theo variant
- *    - Danh sách attributes (size) theo variant
- *    - Giá bán & giá gốc
- * 4. User chọn:
- *    - Variant (màu sắc)
- *    - Attribute (size)
- * 5. User click "Thêm vào giỏ"
- *    - Gọi POST /cart/add/{attId}
- *    - attId lấy từ attribute được chọn
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProductDetailScreen(
@@ -63,19 +42,16 @@ fun ProductDetailScreen(
     val detailState = viewModel.productDetailState.collectAsState()
     val state = detailState.value
 
-    // Load product detail khi vào screen
     LaunchedEffect(productId) {
         viewModel.loadProductDetail(productId)
     }
 
-    // Hiển thị lỗi khi có
     LaunchedEffect(state.error) {
         state.error?.let { errorMsg ->
             MessageManager.showError(errorMsg)
         }
     }
 
-    // Hiển thị thông báo thêm vào giỏ hàng
     LaunchedEffect(state.addToCartSuccess) {
         if (state.addToCartSuccess) {
             MessageManager.showSuccess("Thêm vào giỏ hàng thành công")
@@ -91,7 +67,6 @@ fun ProductDetailScreen(
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
-        // Header với nút back
         TopAppBar(
             title = { Text("Chi tiết sản phẩm") },
             navigationIcon = {
@@ -101,7 +76,6 @@ fun ProductDetailScreen(
             }
         )
 
-        // Loading state
         if (state.isLoading) {
             Box(
                 modifier = Modifier.fillMaxSize(),
@@ -112,7 +86,6 @@ fun ProductDetailScreen(
             return@Column
         }
 
-        // Product detail
         val product = state.product
         if (product != null) {
             ProductDetailContent(
@@ -123,7 +96,6 @@ fun ProductDetailScreen(
                 isAddingToCart = state.isAddingToCart
             )
         } else {
-            // Error state
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
@@ -158,7 +130,6 @@ fun ProductDetailContent(
     onAddToCartClick: (String) -> Unit,
     isAddingToCart: Boolean
 ) {
-    // State để quản lý variant được chọn
     var selectedVariantIndex by remember { mutableStateOf(0) }
     var selectedAttribute by remember { mutableStateOf<ProductDetailVariantAttribute?>(null) }
     var mainImageUrl by remember { mutableStateOf(product.image) }
@@ -170,7 +141,6 @@ fun ProductDetailContent(
         verticalArrangement = Arrangement.spacedBy(16.dp),
         contentPadding = PaddingValues(vertical = 16.dp)
     ) {
-        // 1. Ảnh sản phẩm chính
         item {
             Column {
                 AsyncImage(
@@ -184,7 +154,6 @@ fun ProductDetailContent(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Thumbnail list - Ảnh giới thiệu
                 if (!product.introImages.isNullOrEmpty()) {
                     LazyRow(
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -204,7 +173,6 @@ fun ProductDetailContent(
             }
         }
 
-        // 2. Tên sản phẩm
         item {
             Text(
                 text = product.name,
@@ -213,7 +181,6 @@ fun ProductDetailContent(
             )
         }
 
-        // 3. Chọn Variant (Màu sắc)
         if (!product.variants.isNullOrEmpty()) {
             item {
                 Column {
@@ -233,8 +200,8 @@ fun ProductDetailContent(
                                 isSelected = selectedVariantIndex == index,
                                 onClick = {
                                     selectedVariantIndex = index
-                                    selectedAttribute = null // Reset selected attribute
-                                    mainImageUrl = product.image // Reset to main image
+                                    selectedAttribute = null
+                                    mainImageUrl = product.image
                                 }
                             )
                         }
@@ -242,7 +209,6 @@ fun ProductDetailContent(
                 }
             }
 
-            // 4. Ảnh chi tiết của variant đã chọn
             val currentVariant = product.variants[selectedVariantIndex]
             if (!currentVariant.detailImages.isNullOrEmpty()) {
                 item {
@@ -272,8 +238,15 @@ fun ProductDetailContent(
                 }
             }
 
-            // 5. Chọn Attributes (Size / Loại)
-            if (!currentVariant.attributes.isNullOrEmpty()) {
+            if (currentVariant.attributes.isNullOrEmpty()) {
+                item {
+                    Text(
+                        text = "Phiên bản này hiện chưa có sẵn để mua.",
+                        color = Color.Gray,
+                        modifier = Modifier.padding(vertical = 16.dp)
+                    )
+                }
+            } else {
                 item {
                     Column {
                         Text(
@@ -296,106 +269,101 @@ fun ProductDetailContent(
                         }
                     }
                 }
-            }
-        }
 
-        // 6. Giá sản phẩm
-        item {
-            if (selectedAttribute != null) {
-                val attr = selectedAttribute!!
-                Column {
-                    Divider()
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                item {
+                    if (selectedAttribute != null) {
+                        val attr = selectedAttribute!!
                         Column {
-                            // Giá bán
-                            Text(
-                                text = "${String.format(Locale.US, "%,d", attr.finalPrice ?: 0)} đ",
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.Red
-                            )
+                            Divider()
 
-                            // Giá gốc
-                            if (attr.originalPrice != null && attr.originalPrice != attr.finalPrice) {
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(
-                                    text = "${String.format(Locale.US, "%,d", attr.originalPrice)} đ",
-                                    fontSize = 14.sp,
-                                    color = Color.Gray,
-                                    textDecoration = TextDecoration.LineThrough
-                                )
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column {
+                                    Text(
+                                        text = "${String.format(Locale.US, "%,d", attr.finalPrice ?: 0)} đ",
+                                        fontSize = 20.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.Red
+                                    )
+
+                                    if (attr.originalPrice != null && attr.originalPrice != attr.finalPrice) {
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                        Text(
+                                            text = "${String.format(Locale.US, "%,d", attr.originalPrice)} đ",
+                                            fontSize = 14.sp,
+                                            color = Color.Gray,
+                                            textDecoration = TextDecoration.LineThrough
+                                        )
+                                    }
+
+                                    if (attr.discount != null && attr.discount > 0) {
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                        Text(
+                                            text = "Giảm ${attr.discount.toInt()}%",
+                                            fontSize = 12.sp,
+                                            color = Color(0xFFFF6B6B),
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
+                                }
                             }
 
-                            // Phần trăm giảm
-                            if (attr.discount != null && attr.discount > 0) {
-                                Spacer(modifier = Modifier.height(4.dp))
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            Divider()
+                        }
+                    }
+                }
+
+                item {
+                    if (selectedAttribute != null) {
+                        Button(
+                            onClick = {
+                                onAddToCartClick(selectedAttribute!!.id)
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(48.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6200EA)),
+                            enabled = !isAddingToCart
+                        ) {
+                            if (isAddingToCart) {
+                                CircularProgressIndicator(color = Color.White)
+                            } else {
                                 Text(
-                                    text = "Giảm ${attr.discount.toInt()}%",
-                                    fontSize = 12.sp,
-                                    color = Color(0xFFFF6B6B),
+                                    text = "🛒 Thêm vào giỏ hàng",
+                                    color = Color.White,
+                                    fontSize = 16.sp,
                                     fontWeight = FontWeight.Bold
                                 )
                             }
                         }
-                    }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Divider()
-                }
-            }
-        }
-
-        // 7. Nút "Thêm vào giỏ hàng"
-        item {
-            if (selectedAttribute != null) {
-                Button(
-                    onClick = {
-                        onAddToCartClick(selectedAttribute!!.id)
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6200EA)),
-                    enabled = !isAddingToCart
-                ) {
-                    if (isAddingToCart) {
-                        CircularProgressIndicator(color = Color.White)
                     } else {
-                        Text(
-                            text = "🛒 Thêm vào giỏ hàng",
-                            color = Color.White,
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold
-                        )
+                        Button(
+                            onClick = { },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(48.dp),
+                            enabled = false,
+                            colors = ButtonDefaults.buttonColors(containerColor = Color.LightGray)
+                        ) {
+                            Text(
+                                text = "Vui lòng chọn Size",
+                                color = Color.Gray,
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
-                }
-            } else {
-                Button(
-                    onClick = { },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp),
-                    enabled = false,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.LightGray)
-                ) {
-                    Text(
-                        text = "Vui lòng chọn Size",
-                        color = Color.Gray,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
                 }
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }

@@ -89,4 +89,13 @@ dependencies {
     implementation(libs.navigation.compose)
 
     implementation(libs.coil.compose)
+
+    // Import Firebase BoM
+    implementation(platform(libs.firebase.bom))
+
+    // Import Firebase Messaging
+    implementation(libs.firebase.messaging)
+
+    // Import thư viện hỗ trợ await() cho Task
+    implementation(libs.kotlinx.coroutines.play.services)
 }
