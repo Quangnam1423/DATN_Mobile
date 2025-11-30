@@ -3,6 +3,7 @@ package com.example.datn_mobile.data.repository
 import com.example.datn_mobile.data.network.api.AuthApiService
 import com.example.datn_mobile.data.network.dto.LoginRequest as LoginRequestDto
 import com.example.datn_mobile.data.network.dto.RegisterRequest as RegisterRequestDto
+import com.example.datn_mobile.data.network.dto.RegisterResponse
 import com.example.datn_mobile.data.network.dto.toUserProfile
 import com.example.datn_mobile.data.util.Resource
 import com.example.datn_mobile.domain.model.RegisterCredentials
@@ -10,12 +11,14 @@ import com.example.datn_mobile.domain.model.UserCredentials
 import com.example.datn_mobile.domain.model.UserProfile
 import com.example.datn_mobile.domain.repository.AuthRepository
 import com.example.datn_mobile.domain.repository.UserPreferencesRepository
+import com.squareup.moshi.Moshi
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 class AuthRepositoryImpl @Inject constructor(
     private val authApi: AuthApiService,
-    private val prefsRepo: UserPreferencesRepository
+    private val prefsRepo: UserPreferencesRepository,
+    private val moshi: Moshi
 ) : AuthRepository {
 
     override suspend fun login(phoneNumber: String, password: String): Resource<Unit> {
@@ -44,13 +47,19 @@ class AuthRepositoryImpl @Inject constructor(
                 role = credentials.role ?: "USER"
             )
             val response = authApi.register(registerRequestDto)
-            if (response.isSuccessful && response.body() != null) {
-                val registerResponse = response.body()!!
-                if (registerResponse.code == 1000) {
-                    val userProfile = registerResponse.toUserProfile()
-                    Resource.Success(userProfile)
+            if (response.isSuccessful) {
+                val body = response.body()?.string()
+                if (body != null) {
+                    val adapter = moshi.adapter(RegisterResponse::class.java)
+                    val registerResponse = adapter.fromJson(body)
+                    if (registerResponse != null && registerResponse.code == 1000) {
+                        val userProfile = registerResponse.toUserProfile()
+                        Resource.Success(userProfile)
+                    } else {
+                        Resource.Error("Registration failed with code: ${registerResponse?.code}")
+                    }
                 } else {
-                    Resource.Error("Registration failed with code: ${registerResponse.code}")
+                    Resource.Error("Response body is null")
                 }
             } else {
                 Resource.Error(response.message() ?: "Registration failed")
