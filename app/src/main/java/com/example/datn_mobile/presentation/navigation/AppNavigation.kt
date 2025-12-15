@@ -14,6 +14,7 @@ import com.example.datn_mobile.presentation.screen.ForgotPasswordScreen
 import com.example.datn_mobile.presentation.screen.HelpScreen
 import com.example.datn_mobile.presentation.screen.HomeScreenWithNav
 import com.example.datn_mobile.presentation.screen.LoginScreen
+import com.example.datn_mobile.presentation.screen.NotificationScreen
 import com.example.datn_mobile.presentation.screen.PrivacyPolicyScreen
 import com.example.datn_mobile.presentation.screen.ProductDetailScreen
 import com.example.datn_mobile.presentation.screen.SearchScreen
@@ -107,6 +108,9 @@ fun AppNavigation() {
                 },
                 onNavigateToPrivacyPolicy = {
                     navController.navigate(Routes.PrivacyPolicy.route)
+                },
+                onNavigateToNotification = {
+                    navController.navigate(Routes.Notification.route)
                 }
             )
         }
@@ -210,6 +214,14 @@ fun AppNavigation() {
 
         composable(route = Routes.PrivacyPolicy.route) {
             PrivacyPolicyScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable(route = Routes.Notification.route) {
+            NotificationScreen(
                 onBackClick = {
                     navController.popBackStack()
                 }

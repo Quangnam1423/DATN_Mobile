@@ -42,6 +42,7 @@ class PlaceOrderUseCase @Inject constructor(
     private val cartRepository: CartRepository
 ) {
     suspend operator fun invoke(
+        type: Int = 0, // 0 = mua, 1 = sửa
         phoneNumber: String,
         email: String,
         address: String,
@@ -49,6 +50,9 @@ class PlaceOrderUseCase @Inject constructor(
         totalPrice: Long,
         items: List<Pair<String, String>>  // Pair<cartItemId, productAttId>
     ): Resource<Order> {
+        if (type !in 0..1) {
+            return Resource.Error("Loại đơn hàng không hợp lệ")
+        }
         // Validate input
         if (phoneNumber.isBlank()) {
             return Resource.Error("Vui lòng nhập số điện thoại")
@@ -58,19 +62,29 @@ class PlaceOrderUseCase @Inject constructor(
             return Resource.Error("Vui lòng nhập email")
         }
 
-        if (address.isBlank()) {
-            return Resource.Error("Vui lòng nhập địa chỉ giao hàng")
+        // type 0 = mua: yêu cầu địa chỉ, totalPrice > 0, items không rỗng
+        if (type == 0) {
+            if (address.isBlank()) {
+                return Resource.Error("Vui lòng nhập địa chỉ giao hàng")
+            }
+            if (totalPrice <= 0) {
+                return Resource.Error("Tổng tiền phải lớn hơn 0")
+            }
+            if (items.isEmpty()) {
+                return Resource.Error("Giỏ hàng trống")
+            }
         }
+        // type 1 = sửa: cho phép bỏ qua address/totalPrice/items
 
-        if (totalPrice <= 0) {
-            return Resource.Error("Tổng tiền phải lớn hơn 0")
-        }
-
-        if (items.isEmpty()) {
-            return Resource.Error("Giỏ hàng trống")
-        }
-
-        return cartRepository.placeOrder(phoneNumber, email, address, description, totalPrice, items)
+        return cartRepository.placeOrder(
+            type,
+            phoneNumber,
+            email,
+            address,
+            description,
+            totalPrice,
+            items
+        )
     }
 }
 

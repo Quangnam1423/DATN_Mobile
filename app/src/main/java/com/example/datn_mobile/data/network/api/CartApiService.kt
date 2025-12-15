@@ -67,6 +67,7 @@ data class CartItemResponse(
  */
 @JsonClass(generateAdapter = true)
 data class PlaceOrderRequest(
+    val type: Int = 0,               // 0 = đơn mua, 1 = đơn sửa
     val phoneNumber: String,         // Số điện thoại giao hàng (bắt buộc)
     val email: String,               // Email giao hàng (bắt buộc)
     val address: String,             // Địa chỉ giao hàng (bắt buộc)

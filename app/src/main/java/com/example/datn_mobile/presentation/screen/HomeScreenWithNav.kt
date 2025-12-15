@@ -20,10 +20,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.ShoppingCart
@@ -44,6 +46,7 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.ui.layout.layout
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -59,10 +62,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import coil.compose.AsyncImage
 import com.example.datn_mobile.domain.model.Product
 import com.example.datn_mobile.presentation.theme.PeachPinkAccent
@@ -94,7 +93,10 @@ fun HomeScreenWithNav(
     onNavigateToCart: () -> Unit,
     onAddToCartClick: (String) -> Unit,
     onNavigateToHelp: () -> Unit = {},
-    onNavigateToPrivacyPolicy: () -> Unit = {}
+    onNavigateToPrivacyPolicy: () -> Unit = {},
+    onNavigateToNotification: () -> Unit = {},
+    onSubmitRepairRequest: (phone: String, email: String, description: String) -> Unit = { _, _, _ -> },
+    onNavigateToProfileFromRepair: () -> Unit = {}
 ) {
     var selectedBottomItem by remember { mutableStateOf(BottomNavItem.HOME) }
     val profileState = profileViewModel.profileState.collectAsState()
@@ -200,7 +202,13 @@ fun HomeScreenWithNav(
                         onNavigateToProfile = {
                             selectedBottomItem = BottomNavItem.PROFILE
                         },
-                        onNavigateToLogin = onNavigateToLogin  // ✅ Truyền callback
+                        onNavigateToLogin = onNavigateToLogin,  // ✅ Truyền callback
+                        onNavigateToNotification = onNavigateToNotification,
+                        onSubmitRepairRequest = onSubmitRepairRequest,
+                        onNavigateToProfileFromRepair = {
+                            selectedBottomItem = BottomNavItem.PROFILE
+                            onNavigateToProfileFromRepair()
+                        }
                     )
                 }
                 BottomNavItem.SEARCH -> {
@@ -236,7 +244,10 @@ fun HomeScreenContent(
     onProductClick: (String) -> Unit,
     onAddToCartClick: (String) -> Unit,
     onNavigateToProfile: () -> Unit,
-    onNavigateToLogin: () -> Unit  // ✅ Thêm callback
+    onNavigateToLogin: () -> Unit,  // ✅ Thêm callback
+    onNavigateToNotification: () -> Unit,
+    onSubmitRepairRequest: (phone: String, email: String, description: String) -> Unit,
+    onNavigateToProfileFromRepair: () -> Unit
 ) {
     val homeState = viewModel.homeState.collectAsState()
     val state = homeState.value
@@ -303,19 +314,26 @@ fun HomeScreenContent(
                     )
                 }
 
-                // Profile Button
-                IconButton(
-                    onClick = onNavigateToProfile,
-                    modifier = Modifier
-                        .size(40.dp)
-                        .background(Color.White.copy(alpha = 0.2f), CircleShape)
+                // Notification Button
+                BadgedBox(
+                    badge = {
+                        // TODO: Add badge count for unread notifications
+                        // For now, we can add it later when we have notification count
+                    }
                 ) {
-                    Icon(
-                        imageVector = Icons.Filled.Person,
-                        contentDescription = "Profile",
-                        tint = Color.White,
-                        modifier = Modifier.size(24.dp)
-                    )
+                    IconButton(
+                        onClick = onNavigateToNotification,
+                        modifier = Modifier
+                            .size(40.dp)
+                            .background(Color.White.copy(alpha = 0.2f), CircleShape)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Notifications,
+                            contentDescription = "Thông báo",
+                            tint = Color.White,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
                 }
             }
 
@@ -324,7 +342,10 @@ fun HomeScreenContent(
 
         // Header
         Text(
-            text = "Cửa hàng",
+            text = when (selectedTab) {
+                2 -> "Sửa chữa điện thoại"
+                else -> "Cửa hàng"
+            },
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
             color = PeachPinkAccent,
@@ -345,7 +366,12 @@ fun HomeScreenContent(
             Tab(
                 selected = selectedTab == 1,
                 onClick = { selectedTab = 1 },
-                text = { Text("Category", color = if (selectedTab == 1) PeachPinkAccent else Color.Gray) }
+                text = { Text("Hãng sản phẩm", color = if (selectedTab == 1) PeachPinkAccent else Color.Gray) }
+            )
+            Tab(
+                selected = selectedTab == 2,
+                onClick = { selectedTab = 2 },
+                text = { Text("Sửa chữa điện thoại", color = if (selectedTab == 2) PeachPinkAccent else Color.Gray) }
             )
         }
 
@@ -422,6 +448,98 @@ fun HomeScreenContent(
                     onProductClick = onProductClick
                 )
             }
+            2 -> {
+                RepairRequestTab(
+                    onSubmit = onSubmitRepairRequest,
+                    onNavigateToProfile = onNavigateToProfileFromRepair
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun RepairRequestTab(
+    onSubmit: (phone: String, email: String, description: String) -> Unit,
+    onNavigateToProfile: () -> Unit
+) {
+    var phone by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
+    var device by remember { mutableStateOf("") }
+    var issue by remember { mutableStateOf("") }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        OutlinedTextField(
+            value = phone,
+            onValueChange = { phone = it },
+            label = { Text("Số điện thoại") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        OutlinedTextField(
+            value = email,
+            onValueChange = { email = it },
+            label = { Text("Email") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        OutlinedTextField(
+            value = device,
+            onValueChange = { device = it },
+            label = { Text("Dòng máy cần sửa") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        OutlinedTextField(
+            value = issue,
+            onValueChange = { issue = it },
+            label = { Text("Mô tả tình trạng") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(140.dp)
+        )
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        Button(
+            onClick = {
+                when {
+                    phone.isBlank() -> {
+                        MessageManager.showError("Vui lòng nhập số điện thoại")
+                        return@Button
+                    }
+                    email.isBlank() -> {
+                        MessageManager.showError("Vui lòng nhập email")
+                        return@Button
+                    }
+                    device.isBlank() -> {
+                        MessageManager.showError("Vui lòng nhập dòng máy cần sửa")
+                        return@Button
+                    }
+                    issue.isBlank() -> {
+                        MessageManager.showError("Vui lòng mô tả tình trạng")
+                        return@Button
+                    }
+                }
+
+                val description = "${device.trim()} | ${issue.trim()}"
+                onSubmit(phone.trim(), email.trim(), description)
+                MessageManager.showSuccess("Đã gửi yêu cầu sửa chữa")
+                onNavigateToProfile()
+            },
+            colors = ButtonDefaults.buttonColors(containerColor = PeachPinkAccent),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                text = "Gửi yêu cầu sửa chữa",
+                fontWeight = FontWeight.Bold,
+                color = Color.White
+            )
         }
     }
 }
@@ -438,7 +556,7 @@ fun CategoryViewContent(
     val categories = remember(products) {
         products.mapNotNull { product ->
             extractCategoryFromName(product.name)
-        }.distinct().sorted().take(3) // Chỉ lấy 3 danh mục đầu tiên
+        }.distinct().sorted()
     }
     
     var selectedCategory by remember { mutableStateOf<String?>(null) }
@@ -458,7 +576,7 @@ fun CategoryViewContent(
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
                 Text(
-                    text = "Không có danh mục nào",
+                    text = "Không có hãng sản phẩm nào",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = Color.Gray
@@ -635,19 +753,63 @@ fun CategoryProductItemContent(
 }
 
 /**
- * Extract category from product name
- * Dựa vào tên sản phẩm để extract category
+ * Extract brand/manufacturer from product name
+ * Dựa vào tên sản phẩm để extract hãng sản phẩm
  */
 private fun extractCategoryFromName(productName: String): String? {
-    val name = productName.lowercase()
+    val name = productName.lowercase().trim()
+    
+    // Danh sách các hãng phổ biến và từ khóa nhận diện
     return when {
-        name.contains("iphone") -> "Phone"
-        name.contains("dich vu dthoai") || name.contains("dịch vụ điện thoại") -> "Dịch Vụ Điện Thoại"
-        name.contains("phu kien dthoai") || name.contains("phụ kiện điện thoại") -> "Phụ Kiện Điện Thoại"
-//        name.contains("xiaomi") -> "Xiaomi"
-//        name.contains("samsung") -> "Samsung"
-//        name.contains("gaming") || name.contains("redmagic") -> "Điện Thoại Gaming"
+        // Apple / iPhone
+        name.contains("iphone") || name.contains("apple") || name.startsWith("iphone") -> "iPhone"
+        
+        // Samsung
+        name.contains("samsung") || name.startsWith("samsung") -> "Samsung"
+        
+        // Xiaomi
+        name.contains("xiaomi") || name.contains("redmi") || name.contains("mi ") || name.startsWith("xiaomi") || name.startsWith("redmi") -> "Xiaomi"
+        
+        // Oppo
+        name.contains("oppo") || name.startsWith("oppo") -> "Oppo"
+        
+        // Vivo
+        name.contains("vivo") || name.startsWith("vivo") -> "Vivo"
+        
+        // Realme
+        name.contains("realme") || name.contains("real me") || name.startsWith("realme") -> "Realme"
+        
+        // OnePlus
+        name.contains("oneplus") || name.contains("one plus") || name.startsWith("oneplus") -> "OnePlus"
+        
+        // Huawei
+        name.contains("huawei") || name.contains("honor") || name.startsWith("huawei") || name.startsWith("honor") -> "Huawei"
+        
+        // Nokia
+        name.contains("nokia") || name.startsWith("nokia") -> "Nokia"
+        
+        // Motorola
+        name.contains("motorola") || name.contains("moto ") || name.startsWith("motorola") || name.startsWith("moto") -> "Motorola"
+        
+        // Asus
+        name.contains("asus") || name.contains("rog ") || name.startsWith("asus") -> "Asus"
+        
+        // Google Pixel
+        name.contains("pixel") || name.contains("google") || name.startsWith("pixel") -> "Google Pixel"
+        
+        // Sony
+        name.contains("sony") || name.contains("xperia") || name.startsWith("sony") -> "Sony"
+        
+        // LG
+        name.contains("lg ") || name.startsWith("lg") -> "LG"
+        
+        // Dịch vụ và phụ kiện
+        name.contains("dich vu") || name.contains("dịch vụ") -> "Dịch Vụ"
+        name.contains("phu kien") || name.contains("phụ kiện") || name.contains("phụ kiện điện thoại") -> "Phụ Kiện"
+        
+        // Gaming phones
+        name.contains("gaming") || name.contains("redmagic") || name.contains("black shark") -> "Điện Thoại Gaming"
+        
         else -> null
     }
 }
-

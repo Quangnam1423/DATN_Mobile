@@ -23,6 +23,7 @@ interface CartRepository {
      * POST /bej3/cart/place-order
      */
     suspend fun placeOrder(
+        type: Int = 0,                // 0 = đơn mua, 1 = đơn sửa
         phoneNumber: String,
         email: String,
         address: String,

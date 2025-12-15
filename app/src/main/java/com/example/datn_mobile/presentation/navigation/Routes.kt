@@ -13,6 +13,7 @@ sealed class Routes(val route: String) {
     object ProductDetail : Routes("product_detail_screen")
     object Help : Routes("help_screen")
     object PrivacyPolicy : Routes("privacy_policy_screen")
+    object Notification : Routes("notification_screen")
     object Detail : Routes("detail_screen/{itemId}") {
         fun createRoute(itemId: String) = "detail_screen/$itemId"
     }

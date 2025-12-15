@@ -4,6 +4,7 @@ import com.example.datn_mobile.data.network.api.AuthApiService
 import com.example.datn_mobile.data.network.dto.LoginRequest as LoginRequestDto
 import com.example.datn_mobile.data.network.dto.RegisterRequest as RegisterRequestDto
 import com.example.datn_mobile.data.network.dto.RegisterResponse
+import com.example.datn_mobile.data.network.dto.ErrorResponse
 import com.example.datn_mobile.data.network.dto.toUserProfile
 import com.example.datn_mobile.data.util.Resource
 import com.example.datn_mobile.domain.model.RegisterCredentials
@@ -24,16 +25,47 @@ class AuthRepositoryImpl @Inject constructor(
     override suspend fun login(phoneNumber: String, password: String): Resource<Unit> {
         return try {
             val response = authApi.login(LoginRequestDto(phoneNumber, password))
-            if (response.isSuccessful && response.body()?.result != null) {
-                val token = response.body()!!.result!!.token
+            val responseBody = response.body()
+            if (response.isSuccessful && responseBody?.result != null) {
+                val token = responseBody.result.token
                 prefsRepo.saveAuthToken(token)
                 prefsRepo.saveUserCredentials(UserCredentials(phoneNumber, password))
                 Resource.Success(Unit)
             } else {
-                Resource.Error(response.message() ?: "Login failed")
+                // Parse error response
+                val errorBody = response.errorBody()?.string()
+                val errorMessage = if (errorBody != null) {
+                    try {
+                        val adapter = moshi.adapter(ErrorResponse::class.java)
+                        val errorResponse = adapter.fromJson(errorBody)
+                        // Check if it's a user not found error
+                        if (errorResponse != null) {
+                            val message = errorResponse.message?.lowercase() ?: ""
+                            // Check for user not found scenarios
+                            if (message.contains("không tồn tại") || 
+                                message.contains("not found") || 
+                                message.contains("user not found") ||
+                                message.contains("người dùng không tồn tại") ||
+                                errorResponse.code == 1004 || // Common error code for user not found
+                                response.code() == 404) {
+                                "Người dùng không tồn tại"
+                            } else {
+                                // For other login errors (wrong password, wrong phone number, etc.)
+                                "Số điện thoại hoặc mật khẩu đã sai"
+                            }
+                        } else {
+                            "Số điện thoại hoặc mật khẩu đã sai"
+                        }
+                    } catch (e: Exception) {
+                        "Số điện thoại hoặc mật khẩu đã sai"
+                    }
+                } else {
+                    "Số điện thoại hoặc mật khẩu đã sai"
+                }
+                Resource.Error(errorMessage)
             }
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "An error occurred")
+            Resource.Error(e.message ?: "Đã xảy ra lỗi")
         }
     }
 

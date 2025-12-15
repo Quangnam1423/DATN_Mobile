@@ -33,7 +33,9 @@ data class Product(
     @field:Json(name = "createDate")
     val createDate: String,
     @field:Json(name = "variant")
-    val variant: ProductVariant
+    val variant: ProductVariant,
+    @field:Json(name = "category_id")
+    val categoryId: Int? = null
 )
 
 @JsonClass(generateAdapter = true)

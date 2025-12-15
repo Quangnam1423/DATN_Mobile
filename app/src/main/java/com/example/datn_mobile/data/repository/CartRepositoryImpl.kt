@@ -90,6 +90,7 @@ class CartRepositoryImpl @Inject constructor(
      * Trả về OrderDetailsResponse
      */
     override suspend fun placeOrder(
+        type: Int,
         phoneNumber: String,
         email: String,
         address: String,
@@ -108,6 +109,7 @@ class CartRepositoryImpl @Inject constructor(
             }
 
             val request = PlaceOrderRequest(
+                type = type,
                 phoneNumber = phoneNumber,
                 email = email,
                 address = address,

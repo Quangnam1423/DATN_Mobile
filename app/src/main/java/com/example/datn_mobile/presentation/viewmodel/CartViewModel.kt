@@ -185,6 +185,7 @@ class CartViewModel @Inject constructor(
      * Validation: Kiểm tra tất cả các tham số bắt buộc
      */
     fun placeOrder(
+        type: Int = 0, // 0 = mua, 1 = sửa
         phoneNumber: String,
         email: String,
         address: String,
@@ -192,8 +193,8 @@ class CartViewModel @Inject constructor(
         totalPrice: Long,
         items: List<Pair<String, String>>  // Pair<cartItemId, productAttId>
     ) {
-        // Validate input
-        val validationError = validateOrderInput(phoneNumber, email, address, totalPrice, items)
+        // Validate input (phân nhánh theo type)
+        val validationError = validateOrderInput(type, phoneNumber, email, address, totalPrice, items)
         if (validationError != null) {
             MessageManager.showError(validationError)
             return
@@ -204,6 +205,7 @@ class CartViewModel @Inject constructor(
                 _cartState.value = _cartState.value.copy(isUpdating = true)
 
                 when (val result = placeOrderUseCase(
+                    type,
                     phoneNumber.trim(),
                     email.trim(),
                     address.trim(),
@@ -248,6 +250,7 @@ class CartViewModel @Inject constructor(
      * @return Error message nếu validation thất bại, null nếu hợp lệ
      */
     private fun validateOrderInput(
+        type: Int,
         phoneNumber: String,
         email: String,
         address: String,
@@ -270,25 +273,26 @@ class CartViewModel @Inject constructor(
             return "❌ Email không hợp lệ"
         }
 
-        // Kiểm tra địa chỉ
-        if (address.isBlank()) {
-            return "❌ Địa chỉ không được rỗng"
+        // type 0 = mua: yêu cầu địa chỉ, totalPrice > 0, items không rỗng
+        if (type == 0) {
+            if (address.isBlank()) {
+                return "❌ Địa chỉ không được rỗng"
+            }
+            if (totalPrice <= 0) {
+                return "❌ Tổng tiền phải lớn hơn 0"
+            }
+            if (items.isEmpty()) {
+                return "❌ Giỏ hàng không có sản phẩm"
+            }
         }
-
-        // Kiểm tra tổng tiền
-        if (totalPrice <= 0) {
-            return "❌ Tổng tiền phải lớn hơn 0"
-        }
-
-        // Kiểm tra danh sách items
-        if (items.isEmpty()) {
-            return "❌ Giỏ hàng không có sản phẩm"
-        }
+        // type 1 = sửa: cho phép bỏ qua address/totalPrice/items (ẩn trên UI)
 
         // Kiểm tra từng item
-        for (item in items) {
-            if (item.first.isBlank() || item.second.isBlank()) {
-                return "❌ ID sản phẩm hoặc ID thuộc tính không được rỗng"
+        if (items.isNotEmpty()) {
+            for (item in items) {
+                if (item.first.isBlank() || item.second.isBlank()) {
+                    return "❌ ID sản phẩm hoặc ID thuộc tính không được rỗng"
+                }
             }
         }
 
