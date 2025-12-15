@@ -24,8 +24,9 @@ data class CartState(
     val isLoading: Boolean = false,
     val error: String? = null,
     val isUpdating: Boolean = false,
-    val totalPrice: Long = 0,          // Tổng giá tiền giỏ hàng
-    val totalQuantity: Int = 0         // Tổng số lượng sản phẩm
+    val totalPrice: Long = 0,          // Tổng giá tiền các sản phẩm được chọn
+    val totalQuantity: Int = 0,        // Tổng số lượng các sản phẩm được chọn
+    val selectedItemIds: Set<String> = emptySet() // Danh sách ID sản phẩm đang được chọn
 )
 
 data class OrderState(
@@ -105,15 +106,22 @@ class CartViewModel @Inject constructor(
                             _cartState.value = CartState(
                                 cart = cartData ?: Cart(items = emptyList()),
                                 totalPrice = 0L,
-                                totalQuantity = 0
+                                totalQuantity = 0,
+                                selectedItemIds = emptySet()
                             )
                         } else {
-                            // Tính tổng tiền và số lượng
+                            // Mặc định chọn tất cả sản phẩm trong giỏ
+                            val allSelectedIds = cartData.items.map { it.id }.toSet()
+                            // Tính tổng tiền và số lượng theo các sản phẩm được chọn
                             val (totalPrice, totalQuantity) = calculateCartTotals(cartData.items)
                             _cartState.value = CartState(
-                                cart = cartData,
+                                cart = cartData.copy(
+                                    totalPrice = totalPrice,
+                                    totalQuantity = totalQuantity
+                                ),
                                 totalPrice = totalPrice,
-                                totalQuantity = totalQuantity
+                                totalQuantity = totalQuantity,
+                                selectedItemIds = allSelectedIds
                             )
                         }
                     }
@@ -193,10 +201,24 @@ class CartViewModel @Inject constructor(
         phoneNumber: String,
         email: String,
         address: String,
-        description: String?,
-        totalPrice: Long,
-        items: List<Pair<String, String>>  // Pair<cartItemId, productAttId>
+        description: String?
     ) {
+        val currentState = _cartState.value
+        val cart = currentState.cart
+        val selectedIds = currentState.selectedItemIds
+
+        if (cart == null || selectedIds.isEmpty()) {
+            MessageManager.showError("❌ Vui lòng chọn ít nhất 1 sản phẩm để thanh toán")
+            return
+        }
+
+        // Lấy danh sách item được chọn
+        val selectedItems = cart.items.filter { it.id in selectedIds }
+        val (totalPrice, _) = calculateCartTotals(selectedItems)
+
+        // Chuẩn bị danh sách Pair<cartItemId, productAttId> cho use case
+        val items = selectedItems.map { it.id to it.attId }
+
         // Validate input (phân nhánh theo type)
         val validationError = validateOrderInput(type, phoneNumber, email, address, totalPrice, items)
         if (validationError != null) {
@@ -320,7 +342,32 @@ class CartViewModel @Inject constructor(
     }
 
     /**
-     * Gọi API cập nhật số lượng và cập nhật lại cart local + tổng tiền/số lượng
+     * 8️⃣ Chọn / bỏ chọn 1 sản phẩm trong giỏ hàng
+     */
+    fun toggleItemSelection(item: CartItem) {
+        val currentState = _cartState.value
+        val cart = currentState.cart ?: return
+
+        val newSelectedIds = currentState.selectedItemIds.toMutableSet().apply {
+            if (contains(item.id)) remove(item.id) else add(item.id)
+        }
+
+        val selectedItems = cart.items.filter { it.id in newSelectedIds }
+        val (totalPrice, totalQuantity) = calculateCartTotals(selectedItems)
+
+        _cartState.value = currentState.copy(
+            cart = cart.copy(
+                totalPrice = totalPrice,
+                totalQuantity = totalQuantity
+            ),
+            totalPrice = totalPrice,
+            totalQuantity = totalQuantity,
+            selectedItemIds = newSelectedIds
+        )
+    }
+
+    /**
+     * Gọi API cập nhật số lượng và cập nhật lại cart local + tổng tiền/số lượng (chỉ cho sản phẩm được chọn)
      */
     private fun updateItemQuantity(item: CartItem, newQuantity: Int) {
         viewModelScope.launch {
@@ -337,7 +384,10 @@ class CartViewModel @Inject constructor(
                                 if (cartItem.id == item.id) updatedItem else cartItem
                             }
 
-                            val (totalPrice, totalQuantity) = calculateCartTotals(updatedItems)
+                            // Chỉ tính tổng cho các sản phẩm đang được chọn
+                            val selectedIds = _cartState.value.selectedItemIds
+                            val selectedItems = updatedItems.filter { it.id in selectedIds }
+                            val (totalPrice, totalQuantity) = calculateCartTotals(selectedItems)
 
                             _cartState.value = _cartState.value.copy(
                                 cart = currentCart.copy(

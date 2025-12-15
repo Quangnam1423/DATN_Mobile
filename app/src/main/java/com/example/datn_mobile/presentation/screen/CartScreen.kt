@@ -20,6 +20,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -74,7 +75,19 @@ fun CartScreen(
             CartContent(
                 cart = cartState.cart!!,
                 isUpdating = cartState.isUpdating,
-                onCheckout = onCheckoutClick,
+                totalPrice = cartState.totalPrice,
+                totalQuantity = cartState.totalQuantity,
+                onCheckout = {
+                    // Gọi placeOrder dựa trên các sản phẩm đã chọn
+                    viewModel.placeOrder(
+                        type = 0,
+                        phoneNumber = "",  // TODO: truyền từ UI thanh toán
+                        email = "",
+                        address = "",
+                        description = null
+                    )
+                    onCheckoutClick()
+                },
                 onRemoveItem = { item ->
                     viewModel.removeFromCart(item.id)
                 },
@@ -83,6 +96,10 @@ fun CartScreen(
                 },
                 onDecreaseQuantity = { item ->
                     viewModel.decreaseQuantity(item)
+                },
+                selectedItemIds = cartState.selectedItemIds,
+                onToggleSelect = { item ->
+                    viewModel.toggleItemSelection(item)
                 }
             )
         }
@@ -168,10 +185,14 @@ private fun EmptyCartScreen(onContinueShopping: () -> Unit) {
 private fun CartContent(
     cart: Cart,
     isUpdating: Boolean,
+    totalPrice: Long,
+    totalQuantity: Int,
     onCheckout: () -> Unit,
     onRemoveItem: (CartItem) -> Unit,
     onIncreaseQuantity: (CartItem) -> Unit,
-    onDecreaseQuantity: (CartItem) -> Unit
+    onDecreaseQuantity: (CartItem) -> Unit,
+    selectedItemIds: Set<String>,
+    onToggleSelect: (CartItem) -> Unit
 ) {
     Column(
         modifier = Modifier.fillMaxSize()
@@ -187,6 +208,8 @@ private fun CartContent(
             items(cart.items) { item ->
                 CartItemCard(
                     item = item,
+                    isSelected = selectedItemIds.contains(item.id),
+                    onToggleSelect = { onToggleSelect(item) },
                     onRemoveClick = { onRemoveItem(item) },
                     onIncreaseClick = { onIncreaseQuantity(item) },
                     onDecreaseClick = { onDecreaseQuantity(item) }
@@ -196,7 +219,8 @@ private fun CartContent(
 
         // Summary & Checkout
         CartSummary(
-            cart = cart,
+            totalPrice = totalPrice,
+            totalQuantity = totalQuantity,
             isUpdating = isUpdating,
             onCheckout = onCheckout
         )
@@ -206,6 +230,8 @@ private fun CartContent(
 @Composable
 private fun CartItemCard(
     item: CartItem,
+    isSelected: Boolean,
+    onToggleSelect: () -> Unit,
     onRemoveClick: () -> Unit,
     onIncreaseClick: () -> Unit,
     onDecreaseClick: () -> Unit
@@ -222,6 +248,12 @@ private fun CartItemCard(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            // Checkbox chọn sản phẩm
+            Checkbox(
+                checked = isSelected,
+                onCheckedChange = { onToggleSelect() }
+            )
+
             // Delete icon on the left
             IconButton(onClick = onRemoveClick) {
                 Icon(
@@ -306,7 +338,8 @@ private fun CartItemCard(
 
 @Composable
 private fun CartSummary(
-    cart: Cart,
+    totalPrice: Long,
+    totalQuantity: Int,
     isUpdating: Boolean,
     onCheckout: () -> Unit
 ) {
@@ -324,7 +357,7 @@ private fun CartSummary(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text("Số lượng sản phẩm:", fontSize = 14.sp, color = Color.Gray)
-            Text(cart.totalQuantity.toString(), fontSize = 14.sp, fontWeight = FontWeight.Bold)
+            Text(totalQuantity.toString(), fontSize = 14.sp, fontWeight = FontWeight.Bold)
         }
 
         Row(
@@ -335,7 +368,7 @@ private fun CartSummary(
         ) {
             Text("Tổng tiền:", fontSize = 14.sp, color = Color.Gray)
             Text(
-                "${cart.totalPrice.toFormattedPrice()} đ",
+                "${totalPrice.toFormattedPrice()} đ",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 color = PeachPinkAccent
@@ -347,7 +380,7 @@ private fun CartSummary(
         // Checkout button
         Button(
             onClick = onCheckout,
-            enabled = !isUpdating && cart.items.isNotEmpty(),
+            enabled = !isUpdating && totalQuantity > 0,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(48.dp),
