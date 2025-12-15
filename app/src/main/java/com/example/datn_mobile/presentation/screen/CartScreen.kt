@@ -34,6 +34,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Add
 import com.example.datn_mobile.domain.model.Cart
 import com.example.datn_mobile.domain.model.CartItem
 import com.example.datn_mobile.presentation.theme.LightPeachPink
@@ -44,7 +46,8 @@ import com.example.datn_mobile.presentation.viewmodel.CartViewModel
 fun CartScreen(
     viewModel: CartViewModel = hiltViewModel(),
     onBackClick: () -> Unit = {},
-    onCheckoutClick: () -> Unit = {}
+    onCheckoutClick: () -> Unit = {},
+    onContinueShoppingClick: () -> Unit = onBackClick
 ) {
     val cartState by viewModel.cartState.collectAsState()
 
@@ -66,12 +69,21 @@ fun CartScreen(
                 CircularProgressIndicator()
             }
         } else if (cartState.cart == null || cartState.cart!!.items.isEmpty()) {
-            EmptyCartScreen(onContinueShopping = onBackClick)
+            EmptyCartScreen(onContinueShopping = onContinueShoppingClick)
         } else {
             CartContent(
                 cart = cartState.cart!!,
                 isUpdating = cartState.isUpdating,
-                onCheckout = onCheckoutClick
+                onCheckout = onCheckoutClick,
+                onRemoveItem = { item ->
+                    viewModel.removeFromCart(item.id)
+                },
+                onIncreaseQuantity = { item ->
+                    viewModel.increaseQuantity(item)
+                },
+                onDecreaseQuantity = { item ->
+                    viewModel.decreaseQuantity(item)
+                }
             )
         }
     }
@@ -156,7 +168,10 @@ private fun EmptyCartScreen(onContinueShopping: () -> Unit) {
 private fun CartContent(
     cart: Cart,
     isUpdating: Boolean,
-    onCheckout: () -> Unit
+    onCheckout: () -> Unit,
+    onRemoveItem: (CartItem) -> Unit,
+    onIncreaseQuantity: (CartItem) -> Unit,
+    onDecreaseQuantity: (CartItem) -> Unit
 ) {
     Column(
         modifier = Modifier.fillMaxSize()
@@ -170,7 +185,12 @@ private fun CartContent(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             items(cart.items) { item ->
-                CartItemCard(item = item)
+                CartItemCard(
+                    item = item,
+                    onRemoveClick = { onRemoveItem(item) },
+                    onIncreaseClick = { onIncreaseQuantity(item) },
+                    onDecreaseClick = { onDecreaseQuantity(item) }
+                )
             }
         }
 
@@ -185,7 +205,10 @@ private fun CartContent(
 
 @Composable
 private fun CartItemCard(
-    item: CartItem
+    item: CartItem,
+    onRemoveClick: () -> Unit,
+    onIncreaseClick: () -> Unit,
+    onDecreaseClick: () -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -199,7 +222,16 @@ private fun CartItemCard(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Product info
+            // Delete icon on the left
+            IconButton(onClick = onRemoveClick) {
+                Icon(
+                    imageVector = Icons.Filled.Delete,
+                    contentDescription = "Xóa khỏi giỏ hàng",
+                    tint = Color.Red
+                )
+            }
+
+            // Product info + quantity controls
             Column(
                 modifier = Modifier.weight(1f)
             ) {
@@ -220,12 +252,40 @@ private fun CartItemCard(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Quantity display
-                Text(
-                    text = "Số lượng: ${item.quantity}",
-                    fontSize = 12.sp,
-                    color = Color.Gray
-                )
+                // Quantity controls
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    IconButton(
+                        onClick = onDecreaseClick,
+                        enabled = item.quantity > 1
+                    ) {
+                        Text(
+                            text = "-",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = if (item.quantity > 1) PeachPinkAccent else Color.LightGray
+                        )
+                    }
+
+                    Text(
+                        text = item.quantity.toString(),
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    IconButton(
+                        onClick = onIncreaseClick,
+                        enabled = item.quantity < 10
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Add,
+                            contentDescription = "Tăng số lượng",
+                            tint = if (item.quantity < 10) PeachPinkAccent else Color.LightGray
+                        )
+                    }
+                }
             }
 
             // Total price

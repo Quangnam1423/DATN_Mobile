@@ -100,4 +100,22 @@ class GetMyOrdersUseCase @Inject constructor(
     }
 }
 
+/**
+ * 6️⃣ Cập nhật số lượng 1 sản phẩm trong giỏ hàng
+ * PUT /bej3/cart/update/{cartItemId}?quantity={quantity}
+ */
+class UpdateCartItemQuantityUseCase @Inject constructor(
+    private val cartRepository: CartRepository
+) {
+    suspend operator fun invoke(cartItemId: String, quantity: Int): Resource<CartItem> {
+        if (cartItemId.isBlank()) {
+            return Resource.Error("ID sản phẩm trong giỏ không hợp lệ")
+        }
+        if (quantity !in 1..10) {
+            return Resource.Error("Số lượng phải nằm trong khoảng 1 đến 10")
+        }
+        return cartRepository.updateCartItemQuantity(cartItemId, quantity)
+    }
+}
+
 

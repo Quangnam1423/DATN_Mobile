@@ -173,6 +173,76 @@ class CartRepositoryImpl @Inject constructor(
             Resource.Error("Lỗi không xác định: ${e.message}")
         }
     }
+
+    /**
+     * 5️⃣ Xóa 1 sản phẩm khỏi giỏ hàng
+     * DELETE /bej3/cart/remove/{cartItemId}
+     *
+     * Trả về ApiResponse<Unit> với code = 1000 nếu thành công
+     */
+    override suspend fun removeFromCart(cartItemId: String): Resource<Unit> {
+        return try {
+            val response = cartApiService.removeFromCart(cartItemId)
+            if (response.isSuccessful) {
+                val apiResponse = response.body()
+                if (apiResponse?.code == 1000) {
+                    Resource.Success(Unit)
+                } else {
+                    Resource.Error(apiResponse?.message ?: "Xóa sản phẩm khỏi giỏ thất bại")
+                }
+            } else {
+                when (response.code()) {
+                    401 -> Resource.Error("User unauthenticated")
+                    404 -> Resource.Error("Sản phẩm trong giỏ không tồn tại")
+                    400 -> Resource.Error("Lỗi server không xác định")
+                    else -> Resource.Error("Lỗi xóa khỏi giỏ: ${response.message()}")
+                }
+            }
+        } catch (e: HttpException) {
+            Resource.Error("Lỗi mạng: ${e.message()}")
+        } catch (e: IOException) {
+            Resource.Error("Lỗi kết nối: ${e.message}")
+        } catch (e: Exception) {
+            Resource.Error("Lỗi không xác định: ${e.message}")
+        }
+    }
+
+    /**
+     * 6️⃣ Cập nhật số lượng 1 sản phẩm trong giỏ hàng
+     * PUT /bej3/cart/update/{cartItemId}?quantity={quantity}
+     *
+     * Trả về CartItemResponse sau khi cập nhật
+     */
+    override suspend fun updateCartItemQuantity(
+        cartItemId: String,
+        quantity: Int
+    ): Resource<CartItem> {
+        return try {
+            val response = cartApiService.updateCartItemQuantity(cartItemId, quantity)
+            if (response.isSuccessful) {
+                val apiResponse = response.body()
+                val updatedItem = apiResponse?.result
+                if (updatedItem != null) {
+                    Resource.Success(updatedItem.toCartItemDomain())
+                } else {
+                    Resource.Error("Phản hồi cập nhật giỏ hàng rỗng")
+                }
+            } else {
+                when (response.code()) {
+                    400 -> Resource.Error("Số lượng không hợp lệ")
+                    401 -> Resource.Error("Vui lòng đăng nhập")
+                    404 -> Resource.Error("Sản phẩm trong giỏ không tồn tại")
+                    else -> Resource.Error("Lỗi cập nhật giỏ hàng: ${response.message()}")
+                }
+            }
+        } catch (e: HttpException) {
+            Resource.Error("Lỗi mạng: ${e.message()}")
+        } catch (e: IOException) {
+            Resource.Error("Lỗi kết nối: ${e.message}")
+        } catch (e: Exception) {
+            Resource.Error("Lỗi không xác định: ${e.message}")
+        }
+    }
 }
 
 // Extension functions to convert API response to domain model

@@ -37,5 +37,17 @@ interface CartRepository {
      * GET /bej3/cart/my-order
      */
     suspend fun getMyOrders(): Resource<List<Order>>
+
+    /**
+     * 5️⃣ Xóa 1 sản phẩm khỏi giỏ hàng
+     * DELETE /bej3/cart/remove/{cartItemId}
+     */
+    suspend fun removeFromCart(cartItemId: String): Resource<Unit>
+
+    /**
+     * 6️⃣ Cập nhật số lượng 1 sản phẩm trong giỏ hàng
+     * PUT /bej3/cart/update/{cartItemId}?quantity={quantity}
+     */
+    suspend fun updateCartItemQuantity(cartItemId: String, quantity: Int): Resource<CartItem>
 }
 

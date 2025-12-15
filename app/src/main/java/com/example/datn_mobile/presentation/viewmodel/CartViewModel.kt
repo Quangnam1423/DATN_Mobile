@@ -10,6 +10,8 @@ import com.example.datn_mobile.domain.usecase.AddToCartUseCase
 import com.example.datn_mobile.domain.usecase.GetCartUseCase
 import com.example.datn_mobile.domain.usecase.GetMyOrdersUseCase
 import com.example.datn_mobile.domain.usecase.PlaceOrderUseCase
+import com.example.datn_mobile.domain.usecase.RemoveFromCartUseCase
+import com.example.datn_mobile.domain.usecase.UpdateCartItemQuantityUseCase
 import com.example.datn_mobile.utils.MessageManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,7 +39,9 @@ class CartViewModel @Inject constructor(
     private val getCartUseCase: GetCartUseCase,
     private val addToCartUseCase: AddToCartUseCase,
     private val placeOrderUseCase: PlaceOrderUseCase,
-    private val getMyOrdersUseCase: GetMyOrdersUseCase
+    private val getMyOrdersUseCase: GetMyOrdersUseCase,
+    private val removeFromCartUseCase: RemoveFromCartUseCase,
+    private val updateCartItemQuantityUseCase: UpdateCartItemQuantityUseCase
 ) : ViewModel() {
 
     private val _cartState = MutableStateFlow(CartState())
@@ -233,6 +237,134 @@ class CartViewModel @Inject constructor(
                     is Resource.Loading -> {
                         // Đang xử lý, không làm gì
                     }
+                }
+            } catch (e: Exception) {
+                val errorMsg = "Exception: ${e.message ?: "Lỗi không xác định"}"
+                _cartState.value = _cartState.value.copy(
+                    error = errorMsg,
+                    isUpdating = false
+                )
+                MessageManager.showError(errorMsg)
+            }
+        }
+    }
+
+    /**
+     * 5️⃣ Xóa 1 sản phẩm khỏi giỏ hàng
+     * DELETE /bej3/cart/remove/{cartItemId}
+     */
+    fun removeFromCart(cartItemId: String) {
+        if (cartItemId.isBlank()) {
+            MessageManager.showError("❌ ID sản phẩm trong giỏ không hợp lệ")
+            return
+        }
+
+        viewModelScope.launch {
+            try {
+                _cartState.value = _cartState.value.copy(isUpdating = true)
+
+                when (val result = removeFromCartUseCase(cartItemId.trim())) {
+                    is Resource.Success -> {
+                        MessageManager.showSuccess("🗑️ Đã xóa sản phẩm khỏi giỏ")
+                        // Backend không trả về tổng mới → gọi lại GET /bej3/cart/view
+                        loadCart()
+                    }
+
+                    is Resource.Error -> {
+                        val errorMessage = result.message ?: "Lỗi không xác định khi xóa khỏi giỏ"
+                        _cartState.value = _cartState.value.copy(
+                            error = errorMessage,
+                            isUpdating = false
+                        )
+                        MessageManager.showError(errorMessage)
+                    }
+
+                    is Resource.Loading -> {
+                        // Đang xử lý, không làm gì
+                    }
+                }
+            } catch (e: Exception) {
+                val errorMsg = "Exception: ${e.message ?: "Lỗi không xác định"}"
+                _cartState.value = _cartState.value.copy(
+                    error = errorMsg,
+                    isUpdating = false
+                )
+                MessageManager.showError(errorMsg)
+            }
+        }
+    }
+
+    /**
+     * 6️⃣ Tăng số lượng sản phẩm trong giỏ hàng (tối đa 10)
+     */
+    fun increaseQuantity(item: CartItem) {
+        val currentQty = item.quantity
+        val newQty = (currentQty + 1).coerceAtMost(10)
+        if (newQty == currentQty) {
+            MessageManager.showError("Số lượng tối đa cho mỗi sản phẩm là 10")
+            return
+        }
+        updateItemQuantity(item, newQty)
+    }
+
+    /**
+     * 7️⃣ Giảm số lượng sản phẩm trong giỏ hàng (tối thiểu 1)
+     */
+    fun decreaseQuantity(item: CartItem) {
+        val currentQty = item.quantity
+        val newQty = (currentQty - 1).coerceAtLeast(1)
+        if (newQty == currentQty) {
+            return
+        }
+        updateItemQuantity(item, newQty)
+    }
+
+    /**
+     * Gọi API cập nhật số lượng và cập nhật lại cart local + tổng tiền/số lượng
+     */
+    private fun updateItemQuantity(item: CartItem, newQuantity: Int) {
+        viewModelScope.launch {
+            try {
+                _cartState.value = _cartState.value.copy(isUpdating = true)
+
+                when (val result = updateCartItemQuantityUseCase(item.id, newQuantity)) {
+                    is Resource.Success -> {
+                        val updatedItem = result.data ?: return@launch
+                        val currentCart = _cartState.value.cart
+
+                        if (currentCart != null) {
+                            val updatedItems = currentCart.items.map { cartItem ->
+                                if (cartItem.id == item.id) updatedItem else cartItem
+                            }
+
+                            val (totalPrice, totalQuantity) = calculateCartTotals(updatedItems)
+
+                            _cartState.value = _cartState.value.copy(
+                                cart = currentCart.copy(
+                                    items = updatedItems,
+                                    totalPrice = totalPrice,
+                                    totalQuantity = totalQuantity
+                                ),
+                                totalPrice = totalPrice,
+                                totalQuantity = totalQuantity,
+                                isUpdating = false
+                            )
+                        } else {
+                            // Nếu vì lý do nào đó cart null, reload lại từ API
+                            loadCart()
+                        }
+                    }
+
+                    is Resource.Error -> {
+                        val errorMessage = result.message ?: "Lỗi không xác định khi cập nhật số lượng"
+                        _cartState.value = _cartState.value.copy(
+                            error = errorMessage,
+                            isUpdating = false
+                        )
+                        MessageManager.showError(errorMessage)
+                    }
+
+                    is Resource.Loading -> Unit
                 }
             } catch (e: Exception) {
                 val errorMsg = "Exception: ${e.message ?: "Lỗi không xác định"}"

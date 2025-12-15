@@ -4,9 +4,12 @@ import com.example.datn_mobile.data.network.dto.ApiResponse
 import com.squareup.moshi.JsonClass
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.PUT
 import retrofit2.http.GET
+import retrofit2.http.DELETE
 import retrofit2.http.POST
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface CartApiService {
 
@@ -42,6 +45,32 @@ interface CartApiService {
      */
     @GET("/bej3/cart/my-order")
     suspend fun getMyOrders(): Response<ApiResponse<List<OrderDetailsResponse>>>
+
+    /**
+     * 5️⃣ Xóa 1 sản phẩm khỏi giỏ hàng
+     * DELETE /bej3/cart/remove/{cartItemId}
+     *
+     * Yêu cầu Bearer token
+     * Response: { "code": 1000 }
+     */
+    @DELETE("/bej3/cart/remove/{cartItemId}")
+    suspend fun removeFromCart(
+        @Path("cartItemId") cartItemId: String
+    ): Response<ApiResponse<Unit>>
+
+    /**
+     * 6️⃣ Cập nhật số lượng 1 sản phẩm trong giỏ hàng
+     * PUT /bej3/cart/update/{cartItemId}?quantity={quantity}
+     *
+     * - quantity phải nằm trong khoảng [1, 10]
+     * - Yêu cầu Bearer token (được cấu hình ở Retrofit/OkHttp interceptor)
+     * - Response: CartItemResponse vừa được cập nhật
+     */
+    @PUT("/bej3/cart/update/{cartItemId}")
+    suspend fun updateCartItemQuantity(
+        @Path("cartItemId") cartItemId: String,
+        @Query("quantity") quantity: Int
+    ): Response<ApiResponse<CartItemResponse>>
 }
 
 // DTO classes for API response

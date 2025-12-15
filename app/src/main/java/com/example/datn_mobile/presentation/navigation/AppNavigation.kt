@@ -178,7 +178,21 @@ fun AppNavigation() {
             CartScreen(
                 viewModel = cartViewModel,
                 onBackClick = {
-                    navController.popBackStack()
+                    // Luôn quay về màn hình Home khi nhấn mũi tên back trên màn giỏ hàng
+                    navController.navigate(Routes.Home.route) {
+                        popUpTo(Routes.Home.route) {
+                            inclusive = false
+                        }
+                        launchSingleTop = true
+                    }
+                },
+                onContinueShoppingClick = {
+                    navController.navigate(Routes.Home.route) {
+                        popUpTo(Routes.Home.route) {
+                            inclusive = false
+                        }
+                        launchSingleTop = true
+                    }
                 },
                 onCheckoutClick = {
                     // TODO: Navigate to checkout screen
