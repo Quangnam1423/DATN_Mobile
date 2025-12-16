@@ -19,6 +19,7 @@ import com.example.datn_mobile.presentation.screen.PrivacyPolicyScreen
 import com.example.datn_mobile.presentation.screen.ProductDetailScreen
 import com.example.datn_mobile.presentation.screen.SearchScreen
 import com.example.datn_mobile.presentation.screen.SplashScreen
+import com.example.datn_mobile.presentation.screen.CheckoutScreen
 import com.example.datn_mobile.presentation.viewmodel.CartViewModel
 import com.example.datn_mobile.presentation.viewmodel.HomeViewModel
 import com.example.datn_mobile.presentation.viewmodel.ProductDetailViewModel
@@ -195,8 +196,28 @@ fun AppNavigation() {
                     }
                 },
                 onCheckoutClick = {
-                    // TODO: Navigate to checkout screen
+                    navController.navigate(Routes.Checkout.route)
+                }
+            )
+        }
+
+        composable(route = Routes.Checkout.route) {
+            // Dùng chung CartViewModel với màn Cart để giữ lại trạng thái checkbox đã chọn
+            val parentEntry = navController.getBackStackEntry(Routes.Cart.route)
+            val cartViewModel: CartViewModel = hiltViewModel(parentEntry)
+            CheckoutScreen(
+                viewModel = cartViewModel,
+                onBackClick = {
                     navController.popBackStack()
+                },
+                onOrderSuccess = {
+                    // Sau khi đặt hàng thành công quay về Home
+                    navController.navigate(Routes.Home.route) {
+                        popUpTo(Routes.Home.route) {
+                            inclusive = false
+                        }
+                        launchSingleTop = true
+                    }
                 }
             )
         }

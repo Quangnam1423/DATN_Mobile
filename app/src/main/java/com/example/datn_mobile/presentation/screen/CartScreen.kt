@@ -77,17 +77,7 @@ fun CartScreen(
                 isUpdating = cartState.isUpdating,
                 totalPrice = cartState.totalPrice,
                 totalQuantity = cartState.totalQuantity,
-                onCheckout = {
-                    // Gọi placeOrder dựa trên các sản phẩm đã chọn
-                    viewModel.placeOrder(
-                        type = 0,
-                        phoneNumber = "",  // TODO: truyền từ UI thanh toán
-                        email = "",
-                        address = "",
-                        description = null
-                    )
-                    onCheckoutClick()
-                },
+                onCheckout = onCheckoutClick,
                 onRemoveItem = { item ->
                     viewModel.removeFromCart(item.id)
                 },
@@ -267,6 +257,7 @@ private fun CartItemCard(
             Column(
                 modifier = Modifier.weight(1f)
             ) {
+                // Tên sản phẩm
                 Text(
                     text = item.productName,
                     fontSize = 14.sp,
@@ -274,8 +265,32 @@ private fun CartItemCard(
                     maxLines = 2
                 )
 
+                // Phân loại (dung lượng, màu, size...)
+                if (item.productAttName.isNotBlank() || item.color.isNotBlank()) {
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        if (item.productAttName.isNotBlank()) {
+                            Text(
+                                text = item.productAttName,
+                                fontSize = 12.sp,
+                                color = Color.Gray
+                            )
+                        }
+                        if (item.color.isNotBlank()) {
+                            Text(
+                                text = "• Màu: ${item.color}",
+                                fontSize = 12.sp,
+                                color = Color.Gray
+                            )
+                        }
+                    }
+                }
+
                 Spacer(modifier = Modifier.height(4.dp))
 
+                // Giá đơn vị
                 Text(
                     text = "${item.price.toFormattedPrice()} đ",
                     fontSize = 12.sp,
