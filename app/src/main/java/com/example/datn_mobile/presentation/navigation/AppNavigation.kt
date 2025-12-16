@@ -1,6 +1,7 @@
 package com.example.datn_mobile.presentation.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -21,6 +22,8 @@ import com.example.datn_mobile.presentation.screen.SearchScreen
 import com.example.datn_mobile.presentation.screen.SplashScreen
 import com.example.datn_mobile.presentation.screen.CheckoutScreen
 import com.example.datn_mobile.presentation.screen.OrderTrackingScreen
+import com.example.datn_mobile.presentation.screen.OrderDetailScreen
+import com.example.datn_mobile.domain.model.Order
 import com.example.datn_mobile.presentation.viewmodel.CartViewModel
 import com.example.datn_mobile.presentation.viewmodel.HomeViewModel
 import com.example.datn_mobile.presentation.viewmodel.ProductDetailViewModel
@@ -268,7 +271,9 @@ fun AppNavigation() {
         }
 
         composable(route = Routes.OrderTracking.route) {
+            val orderTrackingViewModel: com.example.datn_mobile.presentation.viewmodel.OrderTrackingViewModel = hiltViewModel()
             OrderTrackingScreen(
+                viewModel = orderTrackingViewModel,
                 onBackClick = {
                     // Điều hướng về Home screen (tab Profile sẽ được hiển thị)
                     navController.navigate(Routes.Home.route) {
@@ -277,8 +282,39 @@ fun AppNavigation() {
                         }
                         launchSingleTop = true
                     }
+                },
+                onOrderClick = { order ->
+                    orderTrackingViewModel.selectOrder(order)
+                    navController.navigate(Routes.OrderDetail.createRoute(order.id))
                 }
             )
+        }
+
+        composable(
+            route = Routes.OrderDetail.route + "/{orderId}",
+            arguments = listOf(
+                navArgument("orderId") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val orderId = backStackEntry.arguments?.getString("orderId") ?: ""
+            // Dùng chung ViewModel với OrderTracking để lấy order
+            val parentEntry = navController.getBackStackEntry(Routes.OrderTracking.route)
+            val orderTrackingViewModel: com.example.datn_mobile.presentation.viewmodel.OrderTrackingViewModel = hiltViewModel(parentEntry)
+            val order = orderTrackingViewModel.getOrderById(orderId)
+            
+            if (order != null) {
+                OrderDetailScreen(
+                    order = order,
+                    onBackClick = {
+                        navController.popBackStack()
+                    }
+                )
+            } else {
+                // Nếu không tìm thấy order, quay lại
+                LaunchedEffect(Unit) {
+                    navController.popBackStack()
+                }
+            }
         }
     }
 }

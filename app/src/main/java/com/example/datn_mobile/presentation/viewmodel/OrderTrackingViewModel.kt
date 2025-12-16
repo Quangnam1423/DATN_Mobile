@@ -15,7 +15,8 @@ import javax.inject.Inject
 data class OrderTrackingState(
     val orders: List<Order> = emptyList(),
     val isLoading: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val selectedOrder: Order? = null
 )
 
 @HiltViewModel
@@ -55,6 +56,14 @@ class OrderTrackingViewModel @Inject constructor(
 
     fun refreshOrders() {
         loadOrders()
+    }
+
+    fun selectOrder(order: Order) {
+        _orderTrackingState.value = _orderTrackingState.value.copy(selectedOrder = order)
+    }
+
+    fun getOrderById(orderId: String): Order? {
+        return _orderTrackingState.value.orders.find { it.id == orderId }
     }
 }
 

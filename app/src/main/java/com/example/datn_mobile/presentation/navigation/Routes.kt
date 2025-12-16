@@ -16,6 +16,9 @@ sealed class Routes(val route: String) {
     object PrivacyPolicy : Routes("privacy_policy_screen")
     object Notification : Routes("notification_screen")
     object OrderTracking : Routes("order_tracking_screen")
+    object OrderDetail : Routes("order_detail_screen") {
+        fun createRoute(orderId: String) = "order_detail_screen/$orderId"
+    }
     object Detail : Routes("detail_screen/{itemId}") {
         fun createRoute(itemId: String) = "detail_screen/$itemId"
     }

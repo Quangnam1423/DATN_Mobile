@@ -34,7 +34,8 @@ import java.util.Locale
 @Composable
 fun OrderTrackingScreen(
     viewModel: OrderTrackingViewModel = hiltViewModel(),
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onOrderClick: (Order) -> Unit = {}
 ) {
     val state by viewModel.orderTrackingState.collectAsState()
     var selectedTabIndex by remember { mutableIntStateOf(0) } // 0 = Đơn mua, 1 = Đơn sửa
@@ -165,7 +166,10 @@ fun OrderTrackingScreen(
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         items(filteredOrders) { order ->
-                            OrderCard(order = order)
+                            OrderCard(
+                                order = order,
+                                onClick = { onOrderClick(order) }
+                            )
                         }
                     }
                 }
@@ -175,9 +179,14 @@ fun OrderTrackingScreen(
 }
 
 @Composable
-private fun OrderCard(order: Order) {
+private fun OrderCard(
+    order: Order,
+    onClick: () -> Unit = {}
+) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
             containerColor = LightPeachPink
