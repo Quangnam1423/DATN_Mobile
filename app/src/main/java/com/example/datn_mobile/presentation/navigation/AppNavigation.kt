@@ -84,6 +84,7 @@ fun AppNavigation() {
         composable(route = Routes.Home.route) {
             val homeViewModel: HomeViewModel = hiltViewModel()
             val profileViewModel: ProfileViewModel = hiltViewModel()
+            val cartViewModel: CartViewModel = hiltViewModel()
             HomeScreenWithNav(
                 homeViewModel = homeViewModel,
                 profileViewModel = profileViewModel,
@@ -119,6 +120,16 @@ fun AppNavigation() {
                 },
                 onNavigateToOrderTracking = {
                     navController.navigate(Routes.OrderTracking.route)
+                },
+                onSubmitRepairRequest = { phone, email, address, description ->
+                    // Gọi placeOrder với type=1 (đơn sửa)
+                    cartViewModel.placeOrder(
+                        type = 1,
+                        phoneNumber = phone,
+                        email = email,
+                        address = address,
+                        description = description
+                    )
                 }
             )
         }

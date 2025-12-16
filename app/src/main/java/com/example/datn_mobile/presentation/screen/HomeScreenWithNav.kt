@@ -16,7 +16,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
@@ -37,6 +40,8 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -96,7 +101,7 @@ fun HomeScreenWithNav(
     onNavigateToPrivacyPolicy: () -> Unit = {},
     onNavigateToNotification: () -> Unit = {},
     onNavigateToOrderTracking: () -> Unit = {},
-    onSubmitRepairRequest: (phone: String, email: String, description: String) -> Unit = { _, _, _ -> },
+    onSubmitRepairRequest: (phone: String, email: String, address: String, description: String) -> Unit = { _, _, _, _ -> },
     onNavigateToProfileFromRepair: () -> Unit = {}
 ) {
     var selectedBottomItem by remember { mutableStateOf(BottomNavItem.HOME) }
@@ -248,7 +253,7 @@ fun HomeScreenContent(
     onNavigateToProfile: () -> Unit,
     onNavigateToLogin: () -> Unit,  // ✅ Thêm callback
     onNavigateToNotification: () -> Unit,
-    onSubmitRepairRequest: (phone: String, email: String, description: String) -> Unit,
+    onSubmitRepairRequest: (phone: String, email: String, address: String, description: String) -> Unit,
     onNavigateToProfileFromRepair: () -> Unit
 ) {
     val homeState = viewModel.homeState.collectAsState()
@@ -462,17 +467,20 @@ fun HomeScreenContent(
 
 @Composable
 private fun RepairRequestTab(
-    onSubmit: (phone: String, email: String, description: String) -> Unit,
+    onSubmit: (phone: String, email: String, address: String, description: String) -> Unit,
     onNavigateToProfile: () -> Unit
 ) {
     var phone by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
+    var address by remember { mutableStateOf("") }
     var device by remember { mutableStateOf("") }
     var issue by remember { mutableStateOf("") }
+    val scrollState = rememberScrollState()
 
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(scrollState)
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
@@ -487,6 +495,13 @@ private fun RepairRequestTab(
             value = email,
             onValueChange = { email = it },
             label = { Text("Email") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        OutlinedTextField(
+            value = address,
+            onValueChange = { address = it },
+            label = { Text("Địa chỉ") },
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -519,6 +534,10 @@ private fun RepairRequestTab(
                         MessageManager.showError("Vui lòng nhập email")
                         return@Button
                     }
+                    address.isBlank() -> {
+                        MessageManager.showError("Vui lòng nhập địa chỉ")
+                        return@Button
+                    }
                     device.isBlank() -> {
                         MessageManager.showError("Vui lòng nhập dòng máy cần sửa")
                         return@Button
@@ -530,7 +549,7 @@ private fun RepairRequestTab(
                 }
 
                 val description = "${device.trim()} | ${issue.trim()}"
-                onSubmit(phone.trim(), email.trim(), description)
+                onSubmit(phone.trim(), email.trim(), address.trim(), description)
                 MessageManager.showSuccess("Đã gửi yêu cầu sửa chữa")
                 onNavigateToProfile()
             },
@@ -544,6 +563,15 @@ private fun RepairRequestTab(
             )
         }
     }
+}
+
+/**
+ * Enum cho các loại sắp xếp sản phẩm
+ */
+enum class SortType(val displayName: String) {
+    NONE("Mặc định"),
+    PRICE_LOW_TO_HIGH("Giá: Thấp → Cao"),
+    PRICE_HIGH_TO_LOW("Giá: Cao → Thấp")
 }
 
 /**
@@ -562,6 +590,7 @@ fun CategoryViewContent(
     }
     
     var selectedCategory by remember { mutableStateOf<String?>(null) }
+    var sortType by remember { mutableStateOf(SortType.NONE) }
 
     if (categories.isEmpty()) {
         Box(
@@ -590,8 +619,27 @@ fun CategoryViewContent(
 
     // Nếu đã chọn category, hiển thị sản phẩm của category đó
     if (selectedCategory != null) {
-        val categoryProducts = products.filter { 
-            extractCategoryFromName(it.name) == selectedCategory 
+        var showSortMenu by remember { mutableStateOf(false) }
+        
+        val categoryProducts = remember(products, selectedCategory, sortType) {
+            val filtered = products.filter { 
+                extractCategoryFromName(it.name) == selectedCategory 
+            }
+            
+            // Sắp xếp theo giá dựa trên sortType
+            when (sortType) {
+                SortType.PRICE_LOW_TO_HIGH -> {
+                    filtered.sortedBy { product ->
+                        (product.variant.finalPrice ?: product.variant.price ?: 0.0)
+                    }
+                }
+                SortType.PRICE_HIGH_TO_LOW -> {
+                    filtered.sortedByDescending { product ->
+                        (product.variant.finalPrice ?: product.variant.price ?: 0.0)
+                    }
+                }
+                SortType.NONE -> filtered
+            }
         }
         
         Column {
@@ -599,7 +647,10 @@ fun CategoryViewContent(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { selectedCategory = null }
+                    .clickable { 
+                        selectedCategory = null
+                        sortType = SortType.NONE
+                    }
                     .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -611,14 +662,78 @@ fun CategoryViewContent(
                 )
             }
             
-            // Category header
-            Text(
-                text = selectedCategory ?: "",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = PeachPinkAccent,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-            )
+            // Category header và Filter - Compact design
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = selectedCategory ?: "",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = PeachPinkAccent
+                )
+                
+                // Compact sort dropdown
+                Box {
+                    Box(
+                        modifier = Modifier
+                            .clickable { showSortMenu = true }
+                            .padding(vertical = 4.dp, horizontal = 8.dp)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text(
+                                text = when (sortType) {
+                                    SortType.NONE -> "Sắp xếp"
+                                    SortType.PRICE_LOW_TO_HIGH -> "Giá: ↑"
+                                    SortType.PRICE_HIGH_TO_LOW -> "Giá: ↓"
+                                },
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = PeachPinkAccent
+                            )
+                            Text(
+                                text = "▼",
+                                fontSize = 10.sp,
+                                color = PeachPinkAccent
+                            )
+                        }
+                    }
+                    
+                    DropdownMenu(
+                        expanded = showSortMenu,
+                        onDismissRequest = { showSortMenu = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text(SortType.NONE.displayName) },
+                            onClick = {
+                                sortType = SortType.NONE
+                                showSortMenu = false
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text(SortType.PRICE_LOW_TO_HIGH.displayName) },
+                            onClick = {
+                                sortType = SortType.PRICE_LOW_TO_HIGH
+                                showSortMenu = false
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text(SortType.PRICE_HIGH_TO_LOW.displayName) },
+                            onClick = {
+                                sortType = SortType.PRICE_HIGH_TO_LOW
+                                showSortMenu = false
+                            }
+                        )
+                    }
+                }
+            }
             
             // Products list
             LazyColumn(
