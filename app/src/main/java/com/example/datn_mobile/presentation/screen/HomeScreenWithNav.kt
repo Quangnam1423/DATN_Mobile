@@ -95,6 +95,7 @@ fun HomeScreenWithNav(
     onNavigateToHelp: () -> Unit = {},
     onNavigateToPrivacyPolicy: () -> Unit = {},
     onNavigateToNotification: () -> Unit = {},
+    onNavigateToOrderTracking: () -> Unit = {},
     onSubmitRepairRequest: (phone: String, email: String, description: String) -> Unit = { _, _, _ -> },
     onNavigateToProfileFromRepair: () -> Unit = {}
 ) {
@@ -226,7 +227,8 @@ fun HomeScreenWithNav(
                             onNavigateToEditProfile()
                         },
                         onNavigateToHelp = onNavigateToHelp,
-                        onNavigateToPrivacyPolicy = onNavigateToPrivacyPolicy
+                        onNavigateToPrivacyPolicy = onNavigateToPrivacyPolicy,
+                        onNavigateToOrderTracking = onNavigateToOrderTracking
                     )
                 }
                 BottomNavItem.CART -> {

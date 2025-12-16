@@ -124,12 +124,15 @@ data class OrderDetailsResponse(
     val userName: String,            // Tên người dùng
     val phoneNumber: String,         // SĐT giao hàng
     val email: String,               // Email giao hàng
-    val address: String,             // Địa chỉ giao hàng
+    val address: String? = null,     // Địa chỉ giao hàng
     val description: String? = null, // Ghi chú
-    val totalPrice: Long,            // Tổng tiền
+    val totalPrice: Double,          // Tổng tiền
     val orderAt: String,             // Ngày đặt hàng (YYYY-MM-DD)
     val updatedAt: String? = null,   // Ngày cập nhật
-    val orderItems: List<OrderItemResponse> // Chi tiết các sản phẩm trong đơn
+    val type: Int,                   // 0 = đơn mua, 1 = đơn sửa
+    val status: Int,                 // Trạng thái đơn hàng
+    val orderItems: List<OrderItemResponse> = emptyList(), // Chi tiết các sản phẩm trong đơn
+    val orderNotes: List<String> = emptyList() // Ghi chú đơn hàng
 )
 
 /**

@@ -20,6 +20,7 @@ import com.example.datn_mobile.presentation.screen.ProductDetailScreen
 import com.example.datn_mobile.presentation.screen.SearchScreen
 import com.example.datn_mobile.presentation.screen.SplashScreen
 import com.example.datn_mobile.presentation.screen.CheckoutScreen
+import com.example.datn_mobile.presentation.screen.OrderTrackingScreen
 import com.example.datn_mobile.presentation.viewmodel.CartViewModel
 import com.example.datn_mobile.presentation.viewmodel.HomeViewModel
 import com.example.datn_mobile.presentation.viewmodel.ProductDetailViewModel
@@ -112,6 +113,9 @@ fun AppNavigation() {
                 },
                 onNavigateToNotification = {
                     navController.navigate(Routes.Notification.route)
+                },
+                onNavigateToOrderTracking = {
+                    navController.navigate(Routes.OrderTracking.route)
                 }
             )
         }
@@ -259,6 +263,20 @@ fun AppNavigation() {
             NotificationScreen(
                 onBackClick = {
                     navController.popBackStack()
+                }
+            )
+        }
+
+        composable(route = Routes.OrderTracking.route) {
+            OrderTrackingScreen(
+                onBackClick = {
+                    // Điều hướng về Home screen (tab Profile sẽ được hiển thị)
+                    navController.navigate(Routes.Home.route) {
+                        popUpTo(Routes.Home.route) {
+                            inclusive = false
+                        }
+                        launchSingleTop = true
+                    }
                 }
             )
         }

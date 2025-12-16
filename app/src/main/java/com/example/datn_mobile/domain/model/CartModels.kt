@@ -69,17 +69,23 @@ data class Order(
     @field:Json(name = "email")
     val email: String,               // Email giao hàng
     @field:Json(name = "address")
-    val address: String,             // Địa chỉ giao hàng
+    val address: String? = null,     // Địa chỉ giao hàng
     @field:Json(name = "description")
     val description: String? = null, // Ghi chú
     @field:Json(name = "totalPrice")
-    val totalPrice: Long,            // Tổng tiền
+    val totalPrice: Double,          // Tổng tiền
     @field:Json(name = "orderAt")
     val orderAt: String,             // Ngày đặt hàng (YYYY-MM-DD)
     @field:Json(name = "updatedAt")
     val updatedAt: String? = null,   // Ngày cập nhật
+    @field:Json(name = "type")
+    val type: Int,                   // 0 = đơn mua, 1 = đơn sửa
+    @field:Json(name = "status")
+    val status: Int,                 // Trạng thái đơn hàng
     @field:Json(name = "orderItems")
-    val orderItems: List<OrderItem> = emptyList()  // Danh sách sản phẩm
+    val orderItems: List<OrderItem> = emptyList(),  // Danh sách sản phẩm
+    @field:Json(name = "orderNotes")
+    val orderNotes: List<String> = emptyList() // Ghi chú đơn hàng
 )
 
 /**

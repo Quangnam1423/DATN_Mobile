@@ -292,6 +292,8 @@ fun com.example.datn_mobile.data.network.api.OrderDetailsResponse.toOrderDomain(
         totalPrice = this.totalPrice,
         orderAt = this.orderAt,
         updatedAt = this.updatedAt,
+        type = this.type,
+        status = this.status,
         orderItems = this.orderItems.map { item ->
             com.example.datn_mobile.domain.model.OrderItem(
                 productAttName = item.productAttName,
@@ -301,7 +303,8 @@ fun com.example.datn_mobile.data.network.api.OrderDetailsResponse.toOrderDomain(
                 productName = item.productName,
                 img = item.img
             )
-        }
+        },
+        orderNotes = this.orderNotes
     )
 }
 

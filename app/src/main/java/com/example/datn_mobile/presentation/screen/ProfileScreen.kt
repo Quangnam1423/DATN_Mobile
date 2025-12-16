@@ -39,7 +39,8 @@ fun ProfileScreen(
     onLoginClick: () -> Unit,
     onEditProfileClick: () -> Unit,
     onNavigateToHelp: () -> Unit = {},
-    onNavigateToPrivacyPolicy: () -> Unit = {}
+    onNavigateToPrivacyPolicy: () -> Unit = {},
+    onNavigateToOrderTracking: () -> Unit = {}
 ) {
     val profileState = viewModel.profileState.collectAsState()
 
@@ -57,7 +58,8 @@ fun ProfileScreen(
             },
             onEditClick = onEditProfileClick,
             onNavigateToHelp = onNavigateToHelp,
-            onNavigateToPrivacyPolicy = onNavigateToPrivacyPolicy
+            onNavigateToPrivacyPolicy = onNavigateToPrivacyPolicy,
+            onNavigateToOrderTracking = onNavigateToOrderTracking
         )
     }
 }
@@ -130,7 +132,8 @@ private fun AuthenticatedProfileScreen(
     onLogout: () -> Unit,
     onEditClick: () -> Unit,
     onNavigateToHelp: () -> Unit = {},
-    onNavigateToPrivacyPolicy: () -> Unit = {}
+    onNavigateToPrivacyPolicy: () -> Unit = {},
+    onNavigateToOrderTracking: () -> Unit = {}
 ) {
     // Show error message when error occurs
     LaunchedEffect(state.error) {
@@ -180,7 +183,8 @@ private fun AuthenticatedProfileScreen(
                 onEditClick = onEditClick,
                 hasError = state.error != null,
                 onNavigateToHelp = onNavigateToHelp,
-                onNavigateToPrivacyPolicy = onNavigateToPrivacyPolicy
+                onNavigateToPrivacyPolicy = onNavigateToPrivacyPolicy,
+                onNavigateToOrderTracking = onNavigateToOrderTracking
             )
         }
     }
@@ -194,7 +198,8 @@ private fun ProfileContent(
     onEditClick: () -> Unit,
     hasError: Boolean,
     onNavigateToHelp: () -> Unit = {},
-    onNavigateToPrivacyPolicy: () -> Unit = {}
+    onNavigateToPrivacyPolicy: () -> Unit = {},
+    onNavigateToOrderTracking: () -> Unit = {}
 ) {
     // Check if profile is incomplete (all fields are null)
     val isProfileIncomplete = profile.fullName == null &&
@@ -401,6 +406,27 @@ private fun ProfileContent(
         }
 
         Spacer(modifier = Modifier.height(32.dp))
+
+        // Order Tracking button
+        Button(
+            onClick = onNavigateToOrderTracking,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = PeachPinkAccent,
+                contentColor = Color.White
+            ),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Text(
+                text = "Theo dõi đơn hàng",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
 
         // Edit Profile button
         Button(
