@@ -25,7 +25,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
@@ -41,6 +40,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import android.util.Log
 import com.example.datn_mobile.presentation.theme.PeachPinkAccent
 import com.example.datn_mobile.presentation.viewmodel.CartViewModel
 
@@ -65,6 +65,13 @@ fun CheckoutScreen(
     val selectedItems = cartState.cart?.items?.filter { 
         it.id in cartState.selectedItemIds 
     } ?: emptyList()
+
+    // Log để debug khi vào màn Checkout
+    Log.d(
+        "CheckoutDebug",
+        "cartId=${cartState.cart?.id}, items=${cartState.cart?.items?.size}, " +
+                "selectedIds=${cartState.selectedItemIds}, totalQuantity=$totalQuantity, totalPrice=$totalPrice"
+    )
 
     val scrollState = rememberScrollState()
 
@@ -106,7 +113,7 @@ fun CheckoutScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "Vui lòng quay lại giỏ hàng và chọn sản phẩm để thanh toán",
+                    text = "Vui lòng quay lại ứng dụng để tiếp tục mua sắm",
                     textAlign = TextAlign.Center
                 )
             }
@@ -311,7 +318,6 @@ fun CheckoutScreen(
                     address = address,
                     description = description.ifBlank { null }
                 )
-                onOrderSuccess()
             },
             enabled = !cartState.isUpdating && totalQuantity > 0,
             modifier = Modifier

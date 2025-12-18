@@ -2,6 +2,7 @@ package com.example.datn_mobile.presentation.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -23,6 +24,7 @@ import com.example.datn_mobile.presentation.screen.SplashScreen
 import com.example.datn_mobile.presentation.screen.CheckoutScreen
 import com.example.datn_mobile.presentation.screen.OrderTrackingScreen
 import com.example.datn_mobile.presentation.screen.OrderDetailScreen
+import com.example.datn_mobile.presentation.screen.ZaloPayWebViewScreen
 import com.example.datn_mobile.domain.model.Order
 import com.example.datn_mobile.presentation.viewmodel.CartViewModel
 import com.example.datn_mobile.presentation.viewmodel.HomeViewModel
@@ -30,6 +32,7 @@ import com.example.datn_mobile.presentation.viewmodel.ProductDetailViewModel
 import com.example.datn_mobile.presentation.viewmodel.ProfileViewModel
 import com.example.datn_mobile.presentation.viewmodel.SearchViewModel
 import com.example.datn_mobile.presentation.viewmodel.SplashViewModel
+import android.net.Uri
 
 @Composable
 fun AppNavigation() {
@@ -223,20 +226,41 @@ fun AppNavigation() {
             // Dùng chung CartViewModel với màn Cart để giữ lại trạng thái checkbox đã chọn
             val parentEntry = navController.getBackStackEntry(Routes.Cart.route)
             val cartViewModel: CartViewModel = hiltViewModel(parentEntry)
+            val cartState = cartViewModel.cartState.collectAsState()
+
+            // Khi có URL thanh toán từ ViewModel -> điều hướng sang WebView trong app
+            LaunchedEffect(cartState.value.paymentRedirectUrl) {
+                val url = cartState.value.paymentRedirectUrl
+                if (!url.isNullOrBlank()) {
+                    val encodedUrl = Uri.encode(url)
+                    navController.navigate(Routes.ZaloPayWebView.createRoute(encodedUrl))
+                    // Reset lại để tránh điều hướng lại khi back
+                    cartViewModel.clearPaymentRedirect()
+                }
+            }
+
             CheckoutScreen(
                 viewModel = cartViewModel,
                 onBackClick = {
                     navController.popBackStack()
                 },
                 onOrderSuccess = {
-                    // Sau khi đặt hàng thành công quay về Home
-                    navController.navigate(Routes.Home.route) {
-                        popUpTo(Routes.Home.route) {
-                            inclusive = false
-                        }
-                        launchSingleTop = true
-                    }
+                    // onOrderSuccess hiện tại không được dùng cho redirect nữa,
+                    // có thể để trống hoặc điều hướng nếu cần.
                 }
+            )
+        }
+
+        composable(
+            route = Routes.ZaloPayWebView.route,
+            arguments = listOf(
+                navArgument("orderUrl") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val orderUrl = backStackEntry.arguments?.getString("orderUrl") ?: ""
+            ZaloPayWebViewScreen(
+                orderUrl = orderUrl,
+                onBackClick = { navController.popBackStack() }
             )
         }
 

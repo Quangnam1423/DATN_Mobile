@@ -132,7 +132,7 @@ data class OrderDetailsResponse(
     val type: Int,                   // 0 = đơn mua, 1 = đơn sửa
     val status: Int,                 // Trạng thái đơn hàng
     val orderItems: List<OrderItemResponse> = emptyList(), // Chi tiết các sản phẩm trong đơn
-    val orderNotes: List<String> = emptyList() // Ghi chú đơn hàng
+    val orderNotes: List<String>? = emptyList() // Ghi chú đơn hàng (có thể null từ backend)
 )
 
 /**

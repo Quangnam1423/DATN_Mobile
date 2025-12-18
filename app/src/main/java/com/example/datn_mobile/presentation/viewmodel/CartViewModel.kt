@@ -10,8 +10,10 @@ import com.example.datn_mobile.domain.usecase.AddToCartUseCase
 import com.example.datn_mobile.domain.usecase.GetCartUseCase
 import com.example.datn_mobile.domain.usecase.GetMyOrdersUseCase
 import com.example.datn_mobile.domain.usecase.PlaceOrderUseCase
+import com.example.datn_mobile.domain.usecase.CreateZaloPayPaymentUseCase
 import com.example.datn_mobile.domain.usecase.RemoveFromCartUseCase
 import com.example.datn_mobile.domain.usecase.UpdateCartItemQuantityUseCase
+import android.util.Log
 import com.example.datn_mobile.utils.MessageManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,7 +28,9 @@ data class CartState(
     val isUpdating: Boolean = false,
     val totalPrice: Long = 0,          // Tổng giá tiền các sản phẩm được chọn
     val totalQuantity: Int = 0,        // Tổng số lượng các sản phẩm được chọn
-    val selectedItemIds: Set<String> = emptySet() // Danh sách ID sản phẩm đang được chọn
+    val selectedItemIds: Set<String> = emptySet(), // Danh sách ID sản phẩm đang được chọn
+    val lastOrder: Order? = null,      // Đơn hàng vừa được tạo (nếu có)
+    val paymentRedirectUrl: String? = null // URL ZaloPay để redirect (nếu có)
 )
 
 data class OrderState(
@@ -42,7 +46,8 @@ class CartViewModel @Inject constructor(
     private val placeOrderUseCase: PlaceOrderUseCase,
     private val getMyOrdersUseCase: GetMyOrdersUseCase,
     private val removeFromCartUseCase: RemoveFromCartUseCase,
-    private val updateCartItemQuantityUseCase: UpdateCartItemQuantityUseCase
+    private val updateCartItemQuantityUseCase: UpdateCartItemQuantityUseCase,
+    private val createZaloPayPaymentUseCase: CreateZaloPayPaymentUseCase
 ) : ViewModel() {
 
     private val _cartState = MutableStateFlow(CartState())
@@ -100,6 +105,12 @@ class CartViewModel @Inject constructor(
                 when (val result = getCartUseCase()) {
                     is Resource.Success -> {
                         val cartData = result.data
+
+                        Log.d(
+                            "CartDebug",
+                            "loadCart success: items=${cartData?.items?.size}, " +
+                                    "ids=${cartData?.items?.map { it.id }}"
+                        )
 
                         // Validate dữ liệu từ API
                         if (cartData == null || cartData.items.isEmpty()) {
@@ -207,6 +218,12 @@ class CartViewModel @Inject constructor(
         val cart = currentState.cart
         val selectedIds = currentState.selectedItemIds
 
+        Log.d(
+            "CartDebug",
+            "placeOrder called: cartNull=${cart == null}, selectedIds=$selectedIds, " +
+                    "cartItems=${cart?.items?.size}"
+        )
+
         if (cart == null || selectedIds.isEmpty()) {
             MessageManager.showError("❌ Vui lòng chọn ít nhất 1 sản phẩm để thanh toán")
             return
@@ -215,6 +232,12 @@ class CartViewModel @Inject constructor(
         // Lấy danh sách item được chọn
         val selectedItems = cart.items.filter { it.id in selectedIds }
         val (totalPrice, _) = calculateCartTotals(selectedItems)
+
+        Log.d(
+            "CartDebug",
+            "placeOrder selectedItems=${selectedItems.map { it.id to it.quantity }}, " +
+                    "calculatedTotal=$totalPrice"
+        )
 
         // Chuẩn bị danh sách Pair<cartItemId, productAttId> cho use case
         val items = selectedItems.map { it.id to it.attId }
@@ -240,11 +263,61 @@ class CartViewModel @Inject constructor(
                     items
                 )) {
                     is Resource.Success -> {
-                        MessageManager.showSuccess("✅ Đặt hàng thành công")
-                        // Clear cart after successful order
-                        _cartState.value = CartState()
-                        // Reload orders
-                        loadMyOrders()
+                        val order = result.data
+                        if (order == null) {
+                            _cartState.value = _cartState.value.copy(
+                                isUpdating = false,
+                                error = "Không nhận được thông tin đơn hàng từ server"
+                            )
+                            MessageManager.showError("Không nhận được thông tin đơn hàng từ server")
+                            return@launch
+                        }
+
+                        // Sau khi tạo đơn thành công -> gọi tiếp API tạo payment ZaloPay
+                        when (val paymentResult = createZaloPayPaymentUseCase(order.id)) {
+                            is Resource.Success -> {
+                                val zaloResult = paymentResult.data
+                                if (zaloResult?.orderUrl.isNullOrBlank()) {
+                                    _cartState.value = _cartState.value.copy(
+                                        isUpdating = false,
+                                        error = "Không nhận được URL thanh toán ZaloPay"
+                                    )
+                                    MessageManager.showError("Không nhận được URL thanh toán ZaloPay")
+                                    return@launch
+                                }
+
+                                MessageManager.showSuccess("✅ Đặt hàng thành công, đang chuyển đến ZaloPay...")
+
+                                // Clear cart + lưu lại order + URL redirect
+                                _cartState.value = CartState(
+                                    cart = null,
+                                    isLoading = false,
+                                    isUpdating = false,
+                                    totalPrice = 0L,
+                                    totalQuantity = 0,
+                                    selectedItemIds = emptySet(),
+                                    lastOrder = order,
+                                    paymentRedirectUrl = zaloResult!!.orderUrl
+                                )
+
+                                // Reload orders list ở background
+                                loadMyOrders()
+                            }
+
+                            is Resource.Error -> {
+                                val errorMessage = paymentResult.message
+                                    ?: "Lỗi không xác định khi tạo giao dịch ZaloPay"
+                                _cartState.value = _cartState.value.copy(
+                                    error = errorMessage,
+                                    isUpdating = false
+                                )
+                                MessageManager.showError(errorMessage)
+                            }
+
+                            is Resource.Loading -> {
+                                // Không dùng trạng thái Loading riêng ở đây
+                            }
+                        }
                     }
 
                     is Resource.Error -> {
@@ -354,6 +427,12 @@ class CartViewModel @Inject constructor(
 
         val selectedItems = cart.items.filter { it.id in newSelectedIds }
         val (totalPrice, totalQuantity) = calculateCartTotals(selectedItems)
+
+        Log.d(
+            "CartDebug",
+            "toggleItemSelection id=${item.id}, nowSelected=$newSelectedIds, " +
+                    "totalQuantity=$totalQuantity, totalPrice=$totalPrice"
+        )
 
         _cartState.value = currentState.copy(
             cart = cart.copy(
@@ -526,6 +605,13 @@ class CartViewModel @Inject constructor(
                 MessageManager.showError(errorMsg)
             }
         }
+    }
+
+    /**
+     * Reset URL thanh toán sau khi đã điều hướng sang WebView
+     */
+    fun clearPaymentRedirect() {
+        _cartState.value = _cartState.value.copy(paymentRedirectUrl = null)
     }
 }
 

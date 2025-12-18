@@ -28,6 +28,7 @@ import com.example.datn_mobile.domain.model.Order
 import com.example.datn_mobile.presentation.theme.LightPeachPink
 import com.example.datn_mobile.presentation.theme.PeachPinkAccent
 import com.example.datn_mobile.presentation.viewmodel.OrderTrackingViewModel
+import com.example.datn_mobile.domain.model.PaymentStatus
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -155,7 +156,10 @@ fun OrderTrackingScreen(
                     } else {
                         order.type == 1 // Đơn sửa
                     }
-                }
+                }.sortedWith(compareByDescending<Order> { order ->
+                    // Ưu tiên updatedAt nếu có, nếu không thì dùng orderAt
+                    order.updatedAt ?: order.orderAt
+                })
 
                 if (filteredOrders.isEmpty()) {
                     EmptyOrdersView(selectedTabIndex == 1)
@@ -166,8 +170,10 @@ fun OrderTrackingScreen(
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         items(filteredOrders) { order ->
+                            val paymentStatus = viewModel.getPaymentStatus(order.id)
                             OrderCard(
                                 order = order,
+                                paymentStatusText = paymentStatus?.let { mapPaymentStatusToText(it) },
                                 onClick = { onOrderClick(order) }
                             )
                         }
@@ -181,6 +187,7 @@ fun OrderTrackingScreen(
 @Composable
 private fun OrderCard(
     order: Order,
+    paymentStatusText: String? = null,
     onClick: () -> Unit = {}
 ) {
     Card(
@@ -234,6 +241,17 @@ private fun OrderCard(
                         fontWeight = FontWeight.Medium
                     )
                 }
+            }
+
+            // Payment status (nếu có)
+            if (!paymentStatusText.isNullOrBlank()) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Thanh toán: $paymentStatusText",
+                    fontSize = 12.sp,
+                    color = Color.Gray,
+                    fontWeight = FontWeight.Medium
+                )
             }
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -407,5 +425,14 @@ private fun EmptyOrdersView(isRepairOrder: Boolean) {
 private fun formatPrice(price: Long): String {
     val formatter = NumberFormat.getNumberInstance(Locale("vi", "VN"))
     return "${formatter.format(price)} đ"
+}
+
+private fun mapPaymentStatusToText(status: PaymentStatus): String {
+    // Có thể tùy chỉnh mapping theo backend, tạm thời:
+    return when (status.status) {
+        1 -> "Đã thanh toán"
+        0 -> "Đang chờ thanh toán"
+        else -> status.statusText ?: "Trạng thái không xác định"
+    }
 }
 

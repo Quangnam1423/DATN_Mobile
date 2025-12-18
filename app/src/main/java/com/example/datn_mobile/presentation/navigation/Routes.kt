@@ -11,6 +11,9 @@ sealed class Routes(val route: String) {
     object EditProfile : Routes("edit_profile_screen")
     object Cart : Routes("cart_screen")
     object Checkout : Routes("checkout_screen")
+    object ZaloPayWebView : Routes("zalopay_webview_screen/{orderUrl}") {
+        fun createRoute(orderUrl: String): String = "zalopay_webview_screen/$orderUrl"
+    }
     object ProductDetail : Routes("product_detail_screen")
     object Help : Routes("help_screen")
     object PrivacyPolicy : Routes("privacy_policy_screen")

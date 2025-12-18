@@ -304,7 +304,7 @@ fun com.example.datn_mobile.data.network.api.OrderDetailsResponse.toOrderDomain(
                 img = item.img
             )
         },
-        orderNotes = this.orderNotes
+        orderNotes = this.orderNotes ?: emptyList()
     )
 }
 
