@@ -8,7 +8,7 @@ import com.example.datn_mobile.domain.repository.CartRepository
 import javax.inject.Inject
 
 /**
- * 1️⃣ Thêm sản phẩm vào giỏ hàng
+ * 1. Thêm sản phẩm vào giỏ hàng
  * POST /bej3/cart/add/{attId}
  */
 class AddToCartUseCase @Inject constructor(
@@ -23,7 +23,7 @@ class AddToCartUseCase @Inject constructor(
 }
 
 /**
- * 2️⃣ Xem danh sách giỏ hàng
+ * 2. Xem danh sách giỏ hàng
  * GET /bej3/cart/view
  */
 class GetCartUseCase @Inject constructor(
@@ -35,7 +35,7 @@ class GetCartUseCase @Inject constructor(
 }
 
 /**
- * 3️⃣ Đặt hàng (Place Order)
+ * 3. Đặt hàng (Place Order)
  * POST /bej3/cart/place-order
  */
 class PlaceOrderUseCase @Inject constructor(
@@ -89,7 +89,7 @@ class PlaceOrderUseCase @Inject constructor(
 }
 
 /**
- * 4️⃣ Xem lịch sử đơn hàng
+ * 4. Xem lịch sử đơn hàng
  * GET /bej3/cart/my-order
  */
 class GetMyOrdersUseCase @Inject constructor(
@@ -101,7 +101,7 @@ class GetMyOrdersUseCase @Inject constructor(
 }
 
 /**
- * 6️⃣ Cập nhật số lượng 1 sản phẩm trong giỏ hàng
+ * 6. Cập nhật số lượng 1 sản phẩm trong giỏ hàng
  * PUT /bej3/cart/update/{cartItemId}?quantity={quantity}
  */
 class UpdateCartItemQuantityUseCase @Inject constructor(
@@ -111,9 +111,10 @@ class UpdateCartItemQuantityUseCase @Inject constructor(
         if (cartItemId.isBlank()) {
             return Resource.Error("ID sản phẩm trong giỏ không hợp lệ")
         }
-        if (quantity !in 1..10) {
-            return Resource.Error("Số lượng phải nằm trong khoảng 1 đến 10")
+        if (quantity < 1) {
+            return Resource.Error("Số lượng phải lớn hơn 0")
         }
+        // Validation về stockQuantity sẽ được xử lý bởi backend
         return cartRepository.updateCartItemQuantity(cartItemId, quantity)
     }
 }

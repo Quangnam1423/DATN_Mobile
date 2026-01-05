@@ -20,7 +20,7 @@ class CartRepositoryImpl @Inject constructor(
 ) : CartRepository {
 
     /**
-     * 1️⃣ Thêm sản phẩm vào giỏ hàng
+     * 1. Thêm sản phẩm vào giỏ hàng
      * POST /bej3/cart/add/{attId}
      *
      * Trả về CartItemResponse (chi tiết sản phẩm được thêm)
@@ -53,7 +53,7 @@ class CartRepositoryImpl @Inject constructor(
     }
 
     /**
-     * 2️⃣ Xem danh sách giỏ hàng
+     * 2. Xem danh sách giỏ hàng
      * GET /bej3/cart/view
      *
      * Trả về List<CartItemResponse>
@@ -84,7 +84,7 @@ class CartRepositoryImpl @Inject constructor(
     }
 
     /**
-     * 3️⃣ Đặt hàng (Place Order)
+     * 3. Đặt hàng (Place Order)
      * POST /bej3/cart/place-order
      *
      * Trả về OrderDetailsResponse
@@ -144,7 +144,7 @@ class CartRepositoryImpl @Inject constructor(
     }
 
     /**
-     * 4️⃣ Xem lịch sử đơn hàng
+     * 4. Xem lịch sử đơn hàng
      * GET /bej3/cart/my-order
      *
      * Trả về List<OrderDetailsResponse>
@@ -175,7 +175,7 @@ class CartRepositoryImpl @Inject constructor(
     }
 
     /**
-     * 5️⃣ Xóa 1 sản phẩm khỏi giỏ hàng
+     * 5. Xóa 1 sản phẩm khỏi giỏ hàng
      * DELETE /bej3/cart/remove/{cartItemId}
      *
      * Trả về ApiResponse<Unit> với code = 1000 nếu thành công
@@ -208,7 +208,7 @@ class CartRepositoryImpl @Inject constructor(
     }
 
     /**
-     * 6️⃣ Cập nhật số lượng 1 sản phẩm trong giỏ hàng
+     * 6. Cập nhật số lượng 1 sản phẩm trong giỏ hàng
      * PUT /bej3/cart/update/{cartItemId}?quantity={quantity}
      *
      * Trả về CartItemResponse sau khi cập nhật
@@ -259,7 +259,8 @@ fun CartItemResponse.toCartItemDomain(): CartItem {
         price = this.price,
         color = this.color,
         productName = this.productName,
-        img = this.img
+        img = this.img,
+        stockQuantity = this.stockQuantity
     )
 }
 
@@ -275,6 +276,17 @@ fun List<CartItemResponse>.toCartDomain(): Cart {
         items = this.map { it.toCartItemDomain() },
         totalPrice = totalPrice,
         totalQuantity = totalQuantity
+    )
+}
+
+/**
+ * Chuyển OrderNoteResponse thành OrderNote
+ */
+fun com.example.datn_mobile.data.network.api.OrderNoteResponse.toOrderNoteDomain(): com.example.datn_mobile.domain.model.OrderNote {
+    return com.example.datn_mobile.domain.model.OrderNote(
+        note = this.note,
+        updateTime = this.updateTime,
+        userName = this.userName
     )
 }
 
@@ -304,7 +316,7 @@ fun com.example.datn_mobile.data.network.api.OrderDetailsResponse.toOrderDomain(
                 img = item.img
             )
         },
-        orderNotes = this.orderNotes ?: emptyList()
+        orderNotes = this.orderNotes?.map { it.toOrderNoteDomain() } ?: emptyList()
     )
 }
 

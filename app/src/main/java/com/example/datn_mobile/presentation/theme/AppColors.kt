@@ -6,4 +6,5 @@ import androidx.compose.ui.graphics.Color
 val PeachPink = Color(0xFFFFB3BA)
 val LightPeachPink = Color(0xFFFFE5D4)
 val PeachPinkAccent = Color(0xFFFF9AA2)
+val LightGray = Color(0xFFE8E8E8)
 

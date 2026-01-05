@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.datn_mobile.data.network.dto.NotificationResponse
 import com.example.datn_mobile.presentation.theme.PeachPinkAccent
+import com.example.datn_mobile.presentation.theme.LightGray
 import com.example.datn_mobile.presentation.viewmodel.NotificationViewModel
 import java.time.Instant
 import java.time.LocalDateTime
@@ -84,7 +85,7 @@ fun NotificationScreen(
                 text = "Chưa đọc",
                 fontSize = 16.sp,
                 fontWeight = if (unreadSelected) FontWeight.Bold else FontWeight.Normal,
-                color = if (unreadSelected) PeachPinkAccent else Color.Gray,
+                color = if (unreadSelected) PeachPinkAccent else Color.Black,
                 modifier = Modifier
                     .clickable { selectedTab.value = 0 }
                     .padding(vertical = 4.dp)
@@ -94,7 +95,7 @@ fun NotificationScreen(
                 text = "Đã đọc",
                 fontSize = 16.sp,
                 fontWeight = if (readSelected) FontWeight.Bold else FontWeight.Normal,
-                color = if (readSelected) PeachPinkAccent else Color.Gray,
+                color = if (readSelected) PeachPinkAccent else Color.Black,
                 modifier = Modifier
                     .clickable { selectedTab.value = 1 }
                     .padding(vertical = 4.dp)
@@ -192,20 +193,20 @@ private fun EmptyNotificationScreen() {
                 imageVector = Icons.Filled.Notifications,
                 contentDescription = null,
                 modifier = Modifier.size(64.dp),
-                tint = Color.Gray
+                tint = LightGray
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
                 text = "Không có thông báo nào",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = Color.Gray
+                color = Color.Black
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = "Bạn sẽ nhận được thông báo khi có cập nhật mới",
                 fontSize = 14.sp,
-                color = Color.Gray
+                color = Color.Black
             )
         }
     }
@@ -285,7 +286,7 @@ private fun NotificationCard(
                 Text(
                     text = notification.body ?: "",
                     fontSize = 14.sp,
-                    color = Color.Gray,
+                    color = Color.Black,
                     maxLines = 3,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -301,7 +302,7 @@ private fun NotificationCard(
                     Text(
                         text = formatNotificationTime(notification.createdAt),
                         fontSize = 12.sp,
-                        color = Color.Gray
+                        color = Color.Black
                     )
 
                     notification.type?.let { type ->
@@ -371,7 +372,7 @@ private fun NotificationDetail(
             Text(
                 text = formatNotificationTime(notification.createdAt),
                 fontSize = 12.sp,
-                color = Color.Gray
+                color = Color.Black
             )
         }
     }

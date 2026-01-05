@@ -30,6 +30,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.datn_mobile.presentation.theme.PeachPinkAccent
+import com.example.datn_mobile.presentation.theme.LightGray
 import com.example.compose.DATN_MobileTheme
 
 @Composable
@@ -67,7 +68,7 @@ fun PrivacyPolicyScreen(
             Text(
                 text = "Cập nhật lần cuối: Tháng 1 năm 2024",
                 fontSize = 12.sp,
-                color = Color.Gray,
+                color = Color.Black,
                 modifier = Modifier.padding(bottom = 24.dp)
             )
             

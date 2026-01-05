@@ -88,9 +88,12 @@ fun AppNavigation() {
             val homeViewModel: HomeViewModel = hiltViewModel()
             val profileViewModel: ProfileViewModel = hiltViewModel()
             val cartViewModel: CartViewModel = hiltViewModel()
+            val notificationViewModel: com.example.datn_mobile.presentation.viewmodel.NotificationViewModel = hiltViewModel()
             HomeScreenWithNav(
                 homeViewModel = homeViewModel,
                 profileViewModel = profileViewModel,
+                cartViewModel = cartViewModel,
+                notificationViewModel = notificationViewModel,
                 onProductClick = { productId ->
                     navController.navigate(Routes.ProductDetail.route + "/$productId")
                 },

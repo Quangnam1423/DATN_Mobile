@@ -7,19 +7,19 @@ import com.example.datn_mobile.domain.model.Order
 
 interface CartRepository {
     /**
-     * 1️⃣ Thêm sản phẩm vào giỏ hàng
+     * 1. Thêm sản phẩm vào giỏ hàng
      * POST /bej3/cart/add/{attId}
      */
     suspend fun addToCart(attId: String): Resource<CartItem>
 
     /**
-     * 2️⃣ Xem danh sách giỏ hàng
+     * 2. Xem danh sách giỏ hàng
      * GET /bej3/cart/view
      */
     suspend fun getCart(): Resource<Cart>
 
     /**
-     * 3️⃣ Đặt hàng (Place Order)
+     * 3. Đặt hàng (Place Order)
      * POST /bej3/cart/place-order
      */
     suspend fun placeOrder(
@@ -33,19 +33,19 @@ interface CartRepository {
     ): Resource<Order>
 
     /**
-     * 4️⃣ Xem lịch sử đơn hàng
+     * 4. Xem lịch sử đơn hàng
      * GET /bej3/cart/my-order
      */
     suspend fun getMyOrders(): Resource<List<Order>>
 
     /**
-     * 5️⃣ Xóa 1 sản phẩm khỏi giỏ hàng
+     * 5. Xóa 1 sản phẩm khỏi giỏ hàng
      * DELETE /bej3/cart/remove/{cartItemId}
      */
     suspend fun removeFromCart(cartItemId: String): Resource<Unit>
 
     /**
-     * 6️⃣ Cập nhật số lượng 1 sản phẩm trong giỏ hàng
+     * 6. Cập nhật số lượng 1 sản phẩm trong giỏ hàng
      * PUT /bej3/cart/update/{cartItemId}?quantity={quantity}
      */
     suspend fun updateCartItemQuantity(cartItemId: String, quantity: Int): Resource<CartItem>

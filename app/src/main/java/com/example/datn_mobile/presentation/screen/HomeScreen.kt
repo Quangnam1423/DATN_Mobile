@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.datn_mobile.domain.model.Product
 import com.example.datn_mobile.presentation.theme.PeachPinkAccent
+import com.example.datn_mobile.presentation.theme.LightGray
 import com.example.datn_mobile.presentation.viewmodel.HomeViewModel
 import java.util.Locale
 import com.example.datn_mobile.utils.MessageManager
@@ -48,7 +49,9 @@ fun HomeScreen(
     }
 
     Column(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
+            .statusBarsPadding()
     ) {
         // Header
         Text(
@@ -94,7 +97,7 @@ fun HomeScreen(
                     Text(
                         text = "Vui lòng quay lại sau",
                         fontSize = 14.sp,
-                        color = Color.Gray,
+                        color = Color.Black,
                         modifier = Modifier.padding(bottom = 16.dp)
                     )
                     Button(
@@ -203,7 +206,7 @@ fun ProductCard(
                     Text(
                         text = "${String.format(Locale.US, "%,d", originalPrice)} đ",
                         fontSize = 11.sp,
-                        color = Color.Gray,
+                        color = Color.Black,
                         textDecoration = TextDecoration.LineThrough
                     )
                 }
@@ -233,7 +236,7 @@ fun ProductCard(
             // Text(
             //     text = "Ngày thêm: ${product.createDate}",
             //     fontSize = 12.sp,
-            //     color = Color.Gray
+            //     color = Color.Black
             // )
         }
     }

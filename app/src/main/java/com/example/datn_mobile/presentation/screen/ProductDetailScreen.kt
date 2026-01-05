@@ -28,6 +28,7 @@ import coil.compose.AsyncImage
 import com.example.datn_mobile.domain.model.ProductDetail
 import com.example.datn_mobile.domain.model.ProductDetailVariant
 import com.example.datn_mobile.domain.model.ProductDetailVariantAttribute
+import com.example.datn_mobile.presentation.theme.LightGray
 import com.example.datn_mobile.presentation.viewmodel.ProductDetailViewModel
 import com.example.datn_mobile.utils.MessageManager
 import java.util.*
@@ -104,11 +105,6 @@ fun ProductDetailScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.padding(horizontal = 32.dp)
                 ) {
-                    Text(
-                        text = "❌",
-                        fontSize = 48.sp,
-                        modifier = Modifier.padding(bottom = 16.dp)
-                    )
                     Text(
                         text = "Không tìm thấy sản phẩm",
                         fontSize = 18.sp,
@@ -252,7 +248,7 @@ fun ProductDetailContent(
                     item {
                         Text(
                             text = "Phiên bản này hiện chưa có sẵn để mua.",
-                            color = Color.Gray,
+                            color = Color.Black,
                             modifier = Modifier.padding(vertical = 16.dp)
                         )
                     }
@@ -306,7 +302,7 @@ fun ProductDetailContent(
                                             Text(
                                                 text = "${String.format(Locale.US, "%,d", attr.originalPrice)} đ",
                                                 fontSize = 14.sp,
-                                                color = Color.Gray,
+                                                color = Color.Black,
                                                 textDecoration = TextDecoration.LineThrough
                                             )
                                         }
@@ -347,7 +343,7 @@ fun VariantButton(
             .height(40.dp)
             .padding(horizontal = 4.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = if (isSelected) Color(0xFF6200EA) else Color.LightGray,
+            containerColor = if (isSelected) Color(0xFF6200EA) else LightGray,
             contentColor = if (isSelected) Color.White else Color.Black
         )
     ) {
@@ -376,7 +372,7 @@ fun AttributeButton(
         ),
         border = BorderStroke(
             width = if (isSelected) 2.dp else 1.dp,
-            color = if (isSelected) Color(0xFF6200EA) else Color.Gray
+            color = if (isSelected) Color(0xFF6200EA) else LightGray
         )
     ) {
         Column(
@@ -430,7 +426,7 @@ fun AddToCartSection(
                         CircularProgressIndicator(color = Color.White)
                     } else {
                         Text(
-                            text = "🛒 Thêm vào giỏ hàng",
+                            text = "Thêm vào giỏ hàng",
                             color = Color.White,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold
@@ -444,11 +440,11 @@ fun AddToCartSection(
                         .fillMaxWidth()
                         .height(52.dp),
                     enabled = false,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.LightGray)
+                    colors = ButtonDefaults.buttonColors(containerColor = LightGray)
                 ) {
                     Text(
                         text = "Vui lòng chọn Size",
-                        color = Color.Gray,
+                        color = Color.Black,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold
                     )

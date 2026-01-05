@@ -35,7 +35,9 @@ data class CartItem(
     @field:Json(name = "productName")
     val productName: String,         // Tên sản phẩm
     @field:Json(name = "img")
-    val img: String                  // URL ảnh
+    val img: String,                 // URL ảnh
+    @field:Json(name = "stockQuantity")
+    val stockQuantity: Int? = null   // Số lượng tồn kho (từ ProductAttribute)
 )
 
 /**
@@ -52,6 +54,19 @@ data class Cart(
     val totalPrice: Long = 0,
     @field:Json(name = "totalQuantity")
     val totalQuantity: Int = 0
+)
+
+/**
+ * Ghi chú đơn hàng
+ */
+@JsonClass(generateAdapter = true)
+data class OrderNote(
+    @field:Json(name = "note")
+    val note: String,                // Nội dung ghi chú
+    @field:Json(name = "updateTime")
+    val updateTime: String,          // Thời gian cập nhật
+    @field:Json(name = "userName")
+    val userName: String             // Tên người cập nhật
 )
 
 /**
@@ -85,7 +100,7 @@ data class Order(
     @field:Json(name = "orderItems")
     val orderItems: List<OrderItem> = emptyList(),  // Danh sách sản phẩm
     @field:Json(name = "orderNotes")
-    val orderNotes: List<String> = emptyList() // Ghi chú đơn hàng
+    val orderNotes: List<OrderNote> = emptyList() // Ghi chú đơn hàng
 )
 
 /**

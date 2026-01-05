@@ -5,7 +5,7 @@ import com.example.datn_mobile.domain.repository.CartRepository
 import javax.inject.Inject
 
 /**
- * 5️⃣ Xóa 1 sản phẩm khỏi giỏ hàng
+ * 5. Xóa 1 sản phẩm khỏi giỏ hàng
  * DELETE /bej3/cart/remove/{cartItemId}
  */
 class RemoveFromCartUseCase @Inject constructor(

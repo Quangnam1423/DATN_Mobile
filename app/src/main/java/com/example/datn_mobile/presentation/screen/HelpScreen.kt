@@ -36,7 +36,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.datn_mobile.presentation.theme.LightPeachPink
+import com.example.datn_mobile.presentation.theme.LightGray
 import com.example.datn_mobile.presentation.theme.PeachPinkAccent
+import com.example.datn_mobile.presentation.theme.LightGray
 import com.example.compose.DATN_MobileTheme
 
 // Mock data for contact information
@@ -89,7 +91,7 @@ fun HelpScreen(
             Text(
                 text = "Chúng tôi luôn sẵn sàng hỗ trợ bạn",
                 fontSize = 14.sp,
-                color = Color.Gray,
+                color = Color.Black,
                 modifier = Modifier.padding(bottom = 32.dp)
             )
             
@@ -219,7 +221,7 @@ fun ContactItem(
                 text = title,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
-                color = Color.Gray
+                color = Color.Black
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(

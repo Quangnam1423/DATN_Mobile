@@ -41,7 +41,9 @@ import androidx.compose.material.icons.filled.Add
 import com.example.datn_mobile.domain.model.Cart
 import com.example.datn_mobile.domain.model.CartItem
 import com.example.datn_mobile.presentation.theme.LightPeachPink
+import com.example.datn_mobile.presentation.theme.LightGray
 import com.example.datn_mobile.presentation.theme.PeachPinkAccent
+import com.example.datn_mobile.presentation.theme.LightGray
 import com.example.datn_mobile.presentation.viewmodel.CartViewModel
 
 @Composable
@@ -138,11 +140,6 @@ private fun EmptyCartScreen(onContinueShopping: () -> Unit) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Text(
-                text = "🛒",
-                fontSize = 64.sp,
-                modifier = Modifier.padding(bottom = 24.dp)
-            )
 
             Text(
                 text = "Giỏ hàng của bạn trống",
@@ -154,7 +151,7 @@ private fun EmptyCartScreen(onContinueShopping: () -> Unit) {
             Text(
                 text = "Thêm sản phẩm để bắt đầu mua sắm",
                 fontSize = 14.sp,
-                color = Color.Gray,
+                color = Color.Black,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(bottom = 32.dp)
             )
@@ -276,14 +273,14 @@ private fun CartItemCard(
                             Text(
                                 text = item.productAttName,
                                 fontSize = 12.sp,
-                                color = Color.Gray
+                                color = Color.Black
                             )
                         }
                         if (item.color.isNotBlank()) {
                             Text(
                                 text = "• Màu: ${item.color}",
                                 fontSize = 12.sp,
-                                color = Color.Gray
+                                color = Color.Black
                             )
                         }
                     }
@@ -295,7 +292,7 @@ private fun CartItemCard(
                 Text(
                     text = "${item.price.toFormattedPrice()} đ",
                     fontSize = 12.sp,
-                    color = Color.Gray
+                    color = Color.Black
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -313,7 +310,7 @@ private fun CartItemCard(
                             text = "-",
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
-                            color = if (item.quantity > 1) PeachPinkAccent else Color.LightGray
+                            color = if (item.quantity > 1) PeachPinkAccent else Color.Black
                         )
                     }
 
@@ -323,14 +320,15 @@ private fun CartItemCard(
                         fontWeight = FontWeight.Bold
                     )
 
+                    val maxQuantity = item.stockQuantity ?: Int.MAX_VALUE
                     IconButton(
                         onClick = onIncreaseClick,
-                        enabled = item.quantity < 10
+                        enabled = item.quantity < maxQuantity
                     ) {
                         Icon(
                             imageVector = Icons.Filled.Add,
                             contentDescription = "Tăng số lượng",
-                            tint = if (item.quantity < 10) PeachPinkAccent else Color.LightGray
+                            tint = if (item.quantity < maxQuantity) PeachPinkAccent else LightGray
                         )
                     }
                 }
@@ -372,7 +370,7 @@ private fun CartSummary(
                 .padding(bottom = 8.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text("Số lượng sản phẩm:", fontSize = 14.sp, color = Color.Gray)
+            Text("Số lượng sản phẩm:", fontSize = 14.sp, color = Color.Black)
             Text(totalQuantity.toString(), fontSize = 14.sp, fontWeight = FontWeight.Bold)
         }
 
@@ -382,7 +380,7 @@ private fun CartSummary(
                 .padding(bottom = 16.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text("Tổng tiền:", fontSize = 14.sp, color = Color.Gray)
+            Text("Tổng tiền:", fontSize = 14.sp, color = Color.Black)
             Text(
                 "${totalPrice.toFormattedPrice()} đ",
                 fontSize = 16.sp,

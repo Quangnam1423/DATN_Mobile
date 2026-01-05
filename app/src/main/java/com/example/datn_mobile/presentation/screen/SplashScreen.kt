@@ -49,7 +49,8 @@ fun SplashScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(SplashBackgroundColor),
+            .background(SplashBackgroundColor)
+            .statusBarsPadding(),
         contentAlignment = Alignment.Center
     ) {
         Column(

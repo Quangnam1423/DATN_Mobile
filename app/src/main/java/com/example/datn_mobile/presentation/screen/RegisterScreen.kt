@@ -23,7 +23,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.datn_mobile.presentation.viewmodel.RegisterState
 import com.example.datn_mobile.presentation.viewmodel.RegisterViewModel
 import com.example.datn_mobile.presentation.theme.LightPeachPink
+import com.example.datn_mobile.presentation.theme.LightGray
 import com.example.datn_mobile.presentation.theme.PeachPinkAccent
+import com.example.datn_mobile.presentation.theme.LightGray
 import com.example.compose.DATN_MobileTheme
 
 
@@ -71,6 +73,7 @@ fun RegisterContent(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
+            .statusBarsPadding()
     ) {
         // Header with back button
         Box(
@@ -147,7 +150,7 @@ fun RegisterContent(
                 placeholder = {
                     Text(
                         text = "Nguyễn Văn A",
-                        color = Color.Gray,
+                        color = Color.Black,
                         fontSize = 16.sp
                     )
                 }
@@ -188,7 +191,7 @@ fun RegisterContent(
                 placeholder = {
                     Text(
                         text = "example@gmail.com",
-                        color = Color.Gray,
+                        color = Color.Black,
                         fontSize = 16.sp
                     )
                 }
@@ -229,7 +232,7 @@ fun RegisterContent(
                 placeholder = {
                     Text(
                         text = "0123456789",
-                        color = Color.Gray,
+                        color = Color.Black,
                         fontSize = 16.sp
                     )
                 }
@@ -271,7 +274,7 @@ fun RegisterContent(
                 placeholder = {
                     Text(
                         text = "Vui lòng nhập mật ",
-                        color = Color.Gray,
+                        color = Color.Black,
                         fontSize = 16.sp
                     )
                 }
@@ -313,7 +316,7 @@ fun RegisterContent(
                 placeholder = {
                     Text(
                         text = "Nhập xác nhận lại mật khẩu",
-                        color = Color.Gray,
+                        color = Color.Black,
                         fontSize = 16.sp
                     )
                 }
@@ -325,7 +328,7 @@ fun RegisterContent(
             Text(
                 text = "Bằng việc tiếp tục, bạn sẽ đồng ý với các điều khoản của ứng dụng",
                 fontSize = 12.sp,
-                color = Color.Gray,
+                color = Color.Black,
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -344,7 +347,7 @@ fun RegisterContent(
                 colors = ButtonDefaults.buttonColors(
                     containerColor = PeachPinkAccent,
                     contentColor = Color.White,
-                    disabledContainerColor = Color.Gray,
+                    disabledContainerColor = LightGray,
                     disabledContentColor = Color.White
                 )
             ) {
@@ -383,7 +386,7 @@ fun RegisterContent(
                 Text(
                     text = "Đã có tài khoản? ",
                     fontSize = 14.sp,
-                    color = Color.Gray
+                    color = Color.Black
                 )
                 androidx.compose.material3.TextButton(
                     onClick = onNavigateBack,

@@ -18,7 +18,9 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.datn_mobile.domain.model.Order
 import com.example.datn_mobile.presentation.theme.LightPeachPink
+import com.example.datn_mobile.presentation.theme.LightGray
 import com.example.datn_mobile.presentation.theme.PeachPinkAccent
+import com.example.datn_mobile.presentation.theme.LightGray
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -91,7 +93,7 @@ fun OrderDetailScreen(
                             Text(
                                 text = "Mã đơn hàng",
                                 fontSize = 12.sp,
-                                color = Color.Gray
+                                color = Color.Black
                             )
                             Text(
                                 text = order.id,
@@ -107,7 +109,7 @@ fun OrderDetailScreen(
                                 1 -> Color(0xFF4CAF50) // Green for confirmed
                                 2 -> Color(0xFF2196F3) // Blue for processing
                                 3 -> Color(0xFF9C27B0) // Purple for completed
-                                else -> Color.Gray
+                                else -> LightGray
                             }
                         ) {
                             Text(
@@ -136,7 +138,7 @@ fun OrderDetailScreen(
                         Text(
                             text = "Loại đơn hàng:",
                             fontSize = 14.sp,
-                            color = Color.Gray
+                            color = Color.Black
                         )
                         Text(
                             text = if (order.type == 0) "Đơn mua" else "Đơn sửa",
@@ -153,7 +155,7 @@ fun OrderDetailScreen(
                         Text(
                             text = "Ngày đặt hàng:",
                             fontSize = 14.sp,
-                            color = Color.Gray
+                            color = Color.Black
                         )
                         Text(
                             text = order.orderAt,
@@ -171,7 +173,7 @@ fun OrderDetailScreen(
                             Text(
                                 text = "Ngày cập nhật:",
                                 fontSize = 14.sp,
-                                color = Color.Gray
+                                color = Color.Black
                             )
                             Text(
                                 text = order.updatedAt,
@@ -234,24 +236,41 @@ fun OrderDetailScreen(
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(bottom = 8.dp)
                         )
-                        order.orderNotes.forEachIndexed { index, note ->
-                            Row(
+                        order.orderNotes.forEachIndexed { index, orderNote ->
+                            Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(vertical = 4.dp)
                             ) {
-                                Text(
-                                    text = "${index + 1}. ",
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = PeachPinkAccent
-                                )
-                                Text(
-                                    text = note,
-                                    fontSize = 14.sp,
-                                    color = Color.Black,
-                                    modifier = Modifier.weight(1f)
-                                )
+                                Row {
+                                    Text(
+                                        text = "${index + 1}. ",
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = PeachPinkAccent
+                                    )
+                                    Text(
+                                        text = orderNote.note,
+                                        fontSize = 14.sp,
+                                        color = Color.Black,
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                }
+                                Row(
+                                    modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+                                ) {
+                                    Text(
+                                        text = "Bởi: ${orderNote.userName}",
+                                        fontSize = 12.sp,
+                                        color = Color.Gray
+                                    )
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Text(
+                                        text = "Lúc: ${orderNote.updateTime}",
+                                        fontSize = 12.sp,
+                                        color = Color.Gray
+                                    )
+                                }
                             }
                         }
                     }
@@ -305,17 +324,17 @@ fun OrderDetailScreen(
                                     Text(
                                         text = "Biến thể: ${item.productAttName}",
                                         fontSize = 13.sp,
-                                        color = Color.Gray
+                                        color = Color.Black
                                     )
                                     Text(
                                         text = "Màu sắc: ${item.color}",
                                         fontSize = 13.sp,
-                                        color = Color.Gray
+                                        color = Color.Black
                                     )
                                     Text(
                                         text = "Số lượng: ${item.quantity}",
                                         fontSize = 13.sp,
-                                        color = Color.Gray
+                                        color = Color.Black
                                     )
                                     Spacer(modifier = Modifier.height(4.dp))
                                     Text(
@@ -417,7 +436,7 @@ private fun InfoRow(label: String, value: String) {
         Text(
             text = "$label:",
             fontSize = 14.sp,
-            color = Color.Gray,
+            color = Color.Black,
             modifier = Modifier.weight(1f)
         )
         Text(

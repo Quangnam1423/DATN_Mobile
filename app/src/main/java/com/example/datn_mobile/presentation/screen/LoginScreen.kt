@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -42,7 +43,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.datn_mobile.presentation.viewmodel.LoginState
 import com.example.datn_mobile.presentation.viewmodel.LoginViewModel
 import com.example.datn_mobile.presentation.theme.LightPeachPink
+import com.example.datn_mobile.presentation.theme.LightGray
 import com.example.datn_mobile.presentation.theme.PeachPinkAccent
+import com.example.datn_mobile.presentation.theme.LightGray
 import com.example.compose.DATN_MobileTheme
 
 @Composable
@@ -92,6 +95,7 @@ fun LoginContent (
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
+            .statusBarsPadding()
     ) {
         // Header with back button
         Box(
@@ -147,7 +151,7 @@ fun LoginContent (
             Text(
                 text = "Vui lòng điền các thông tin bên dưới để tiếp tục",
                 fontSize = 14.sp,
-                color = Color.Gray,
+                color = Color.Black,
                 modifier = Modifier.padding(bottom = 32.dp)
             )
 
@@ -252,7 +256,7 @@ fun LoginContent (
                 colors = ButtonDefaults.buttonColors(
                     containerColor = PeachPinkAccent,
                     contentColor = Color.White,
-                    disabledContainerColor = Color.Gray,
+                    disabledContainerColor = LightGray,
                     disabledContentColor = Color.White
                 )
             ) {
@@ -291,7 +295,7 @@ fun LoginContent (
                 Text(
                     text = "Chưa có tài khoản? ",
                     fontSize = 14.sp,
-                    color = Color.Gray
+                    color = Color.Black
                 )
                 androidx.compose.material3.TextButton(
                     onClick = onNavigateToRegister,

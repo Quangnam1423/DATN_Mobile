@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.sp
 import com.example.datn_mobile.domain.model.Role
 import com.example.datn_mobile.domain.model.UserProfile
 import com.example.datn_mobile.presentation.viewmodel.ProfileViewModel
+import com.example.datn_mobile.presentation.theme.LightGray
 import com.example.datn_mobile.presentation.theme.LightPeachPink
 import com.example.datn_mobile.presentation.theme.PeachPinkAccent
 import com.example.compose.DATN_MobileTheme
@@ -98,7 +99,7 @@ private fun NotAuthenticatedScreen(onLoginClick: () -> Unit) {
             Text(
                 text = "Để xem thông tin cá nhân và quản lý đơn hàng của bạn",
                 fontSize = 14.sp,
-                color = Color.Gray,
+                color = Color.Black,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(bottom = 32.dp)
             )
@@ -495,7 +496,7 @@ private fun ProfileContent(
             text = "Hỗ trợ & Thông tin",
             fontSize = 14.sp,
             fontWeight = FontWeight.SemiBold,
-            color = Color.Gray,
+            color = Color.Black,
             modifier = Modifier.padding(horizontal = 0.dp, vertical = 8.dp)
         )
 
@@ -567,7 +568,7 @@ private fun ProfileInfoRow(
             Text(
                 text = label,
                 fontSize = 12.sp,
-                color = Color.Gray,
+                color = Color.Black,
                 fontWeight = FontWeight.Medium
             )
             Text(

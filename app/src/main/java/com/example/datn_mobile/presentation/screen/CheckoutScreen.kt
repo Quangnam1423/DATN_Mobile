@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import android.util.Log
 import com.example.datn_mobile.presentation.theme.PeachPinkAccent
+import com.example.datn_mobile.presentation.theme.LightGray
 import com.example.datn_mobile.presentation.viewmodel.CartViewModel
 
 @Composable
@@ -234,14 +235,14 @@ fun CheckoutScreen(
                             Text(
                                 text = item.productAttName,
                                 fontSize = 12.sp,
-                                color = Color.Gray
+                                color = Color.Black
                             )
                         }
                         if (item.color.isNotBlank()) {
                             Text(
                                 text = "• Màu: ${item.color}",
                                 fontSize = 12.sp,
-                                color = Color.Gray
+                                color = Color.Black
                             )
                         }
                     }
@@ -255,7 +256,7 @@ fun CheckoutScreen(
                         Text(
                             text = "Số lượng: ${item.quantity}",
                             fontSize = 12.sp,
-                            color = Color.Gray
+                            color = Color.Black
                         )
                         Text(
                             text = "${(item.price * item.quantity).toFormattedPrice()} đ",
@@ -280,7 +281,7 @@ fun CheckoutScreen(
                 Text(
                     text = "Số lượng sản phẩm:",
                     fontSize = 14.sp,
-                    color = Color.Gray
+                    color = Color.Black
                 )
                 Text(
                     text = totalQuantity.toString(),

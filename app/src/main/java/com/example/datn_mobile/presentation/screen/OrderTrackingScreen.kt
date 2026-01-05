@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.example.datn_mobile.domain.model.Order
+import com.example.datn_mobile.presentation.theme.LightGray
 import com.example.datn_mobile.presentation.theme.LightPeachPink
 import com.example.datn_mobile.presentation.theme.PeachPinkAccent
 import com.example.datn_mobile.presentation.viewmodel.OrderTrackingViewModel
@@ -86,7 +87,7 @@ fun OrderTrackingScreen(
                 text = {
                     Text(
                         "Đơn mua",
-                        color = if (selectedTabIndex == 0) PeachPinkAccent else Color.Gray,
+                        color = if (selectedTabIndex == 0) PeachPinkAccent else Color.Black,
                         fontWeight = if (selectedTabIndex == 0) FontWeight.Bold else FontWeight.Normal
                     )
                 }
@@ -97,7 +98,7 @@ fun OrderTrackingScreen(
                 text = {
                     Text(
                         "Đơn sửa",
-                        color = if (selectedTabIndex == 1) PeachPinkAccent else Color.Gray,
+                        color = if (selectedTabIndex == 1) PeachPinkAccent else Color.Black,
                         fontWeight = if (selectedTabIndex == 1) FontWeight.Bold else FontWeight.Normal
                     )
                 }
@@ -125,14 +126,9 @@ fun OrderTrackingScreen(
                         modifier = Modifier.padding(32.dp)
                     ) {
                         Text(
-                            text = "❌",
-                            fontSize = 48.sp,
-                            modifier = Modifier.padding(bottom = 16.dp)
-                        )
-                        Text(
                             text = state.error ?: "Có lỗi xảy ra",
                             fontSize = 16.sp,
-                            color = Color.Gray,
+                            color = Color.Black,
                             textAlign = TextAlign.Center,
                             modifier = Modifier.padding(bottom = 16.dp)
                         )
@@ -224,7 +220,7 @@ private fun OrderCard(
                         1 -> Color(0xFF4CAF50) // Green for confirmed
                         2 -> Color(0xFF2196F3) // Blue for processing
                         3 -> Color(0xFF9C27B0) // Purple for completed
-                        else -> Color.Gray
+                        else -> LightGray
                     }
                 ) {
                     Text(
@@ -249,7 +245,7 @@ private fun OrderCard(
                 Text(
                     text = "Thanh toán: $paymentStatusText",
                     fontSize = 12.sp,
-                    color = Color.Gray,
+                    color = Color.Black,
                     fontWeight = FontWeight.Medium
                 )
             }
@@ -260,7 +256,7 @@ private fun OrderCard(
             Text(
                 text = "Ngày đặt: ${order.orderAt}",
                 fontSize = 12.sp,
-                color = Color.Gray
+                color = Color.Black
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -307,12 +303,12 @@ private fun OrderCard(
                             Text(
                                 text = "${item.productAttName} - ${item.color}",
                                 fontSize = 12.sp,
-                                color = Color.Gray
+                                color = Color.Black
                             )
                             Text(
                                 text = "Số lượng: ${item.quantity}",
                                 fontSize = 12.sp,
-                                color = Color.Gray
+                                color = Color.Black
                             )
                         }
                         Text(
@@ -356,29 +352,29 @@ private fun OrderCard(
                     text = "Thông tin liên hệ:",
                     fontSize = 12.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = Color.Gray,
+                    color = Color.Black,
                     modifier = Modifier.padding(bottom = 4.dp)
                 )
                 Text(
                     text = "Tên: ${order.userName}",
                     fontSize = 12.sp,
-                    color = Color.Gray
+                    color = Color.Black
                 )
                 Text(
                     text = "SĐT: ${order.phoneNumber}",
                     fontSize = 12.sp,
-                    color = Color.Gray
+                    color = Color.Black
                 )
                 Text(
                     text = "Email: ${order.email}",
                     fontSize = 12.sp,
-                    color = Color.Gray
+                    color = Color.Black
                 )
                 if (!order.address.isNullOrBlank()) {
                     Text(
                         text = "Địa chỉ: ${order.address}",
                         fontSize = 12.sp,
-                        color = Color.Gray
+                        color = Color.Black
                     )
                 }
             }
@@ -397,11 +393,6 @@ private fun EmptyOrdersView(isRepairOrder: Boolean) {
             modifier = Modifier.padding(32.dp)
         ) {
             Text(
-                text = "📦",
-                fontSize = 64.sp,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-            Text(
                 text = if (isRepairOrder) "Chưa có đơn sửa chữa nào" else "Chưa có đơn mua nào",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
@@ -415,7 +406,7 @@ private fun EmptyOrdersView(isRepairOrder: Boolean) {
                     "Bạn chưa có đơn mua nào. Hãy mua sắm ngay!"
                 },
                 fontSize = 14.sp,
-                color = Color.Gray,
+                color = Color.Black,
                 textAlign = TextAlign.Center
             )
         }

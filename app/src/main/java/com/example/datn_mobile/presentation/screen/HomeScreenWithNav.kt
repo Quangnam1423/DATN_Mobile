@@ -70,8 +70,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.datn_mobile.domain.model.Product
+import com.example.datn_mobile.presentation.theme.LightGray
 import com.example.datn_mobile.presentation.theme.PeachPinkAccent
+import com.example.datn_mobile.presentation.viewmodel.CartViewModel
 import com.example.datn_mobile.presentation.viewmodel.HomeViewModel
+import com.example.datn_mobile.presentation.viewmodel.NotificationViewModel
 import com.example.datn_mobile.presentation.viewmodel.ProfileViewModel
 import com.example.datn_mobile.utils.MessageManager
 import java.util.Locale
@@ -92,6 +95,8 @@ enum class BottomNavItem(
 fun HomeScreenWithNav(
     homeViewModel: HomeViewModel,
     profileViewModel: ProfileViewModel,
+    cartViewModel: CartViewModel,
+    notificationViewModel: NotificationViewModel,
     onProductClick: (String) -> Unit,
     onNavigateToSearch: () -> Unit,
     onNavigateToLogin: () -> Unit,
@@ -204,12 +209,14 @@ fun HomeScreenWithNav(
                     HomeScreenContent(
                         viewModel = homeViewModel,
                         profileViewModel = profileViewModel,
+                        cartViewModel = cartViewModel,
+                        notificationViewModel = notificationViewModel,
                         onProductClick = onProductClick,
                         onAddToCartClick = onAddToCartClick,
                         onNavigateToProfile = {
                             selectedBottomItem = BottomNavItem.PROFILE
                         },
-                        onNavigateToLogin = onNavigateToLogin,  // ✅ Truyền callback
+                        onNavigateToLogin = onNavigateToLogin,
                         onNavigateToNotification = onNavigateToNotification,
                         onSubmitRepairRequest = onSubmitRepairRequest,
                         onNavigateToProfileFromRepair = {
@@ -249,10 +256,12 @@ fun HomeScreenWithNav(
 fun HomeScreenContent(
     viewModel: HomeViewModel,
     profileViewModel: ProfileViewModel,
+    cartViewModel: CartViewModel,
+    notificationViewModel: NotificationViewModel,
     onProductClick: (String) -> Unit,
     onAddToCartClick: (String) -> Unit,
     onNavigateToProfile: () -> Unit,
-    onNavigateToLogin: () -> Unit,  // ✅ Thêm callback
+    onNavigateToLogin: () -> Unit,
     onNavigateToNotification: () -> Unit,
     onSubmitRepairRequest: (phone: String, email: String, address: String, description: String) -> Unit,
     onNavigateToProfileFromRepair: () -> Unit
@@ -261,12 +270,23 @@ fun HomeScreenContent(
     val state = homeState.value
     val profileState = profileViewModel.profileState.collectAsState()
     val isAuthenticated = profileState.value.isAuthenticated
+    val cartState = cartViewModel.cartState.collectAsState()
+    val notificationState = notificationViewModel.notificationState.collectAsState()
+    val unreadCount = notificationState.value.notifications.count { it.read == false }
     var selectedTab by remember { mutableStateOf(0) }
 
     // Show error message when error occurs
     LaunchedEffect(state.error) {
         state.error?.let { errorMsg ->
             MessageManager.showError(errorMsg)
+        }
+    }
+
+    // Reset về tab Home sau khi tạo đơn sửa chữa thành công
+    LaunchedEffect(cartState.value.shouldResetToHomeTab) {
+        if (cartState.value.shouldResetToHomeTab) {
+            selectedTab = 0
+            cartViewModel.clearResetToHomeTabFlag()
         }
     }
 
@@ -326,8 +346,12 @@ fun HomeScreenContent(
                 // Notification Button
                 BadgedBox(
                     badge = {
-                        // TODO: Add badge count for unread notifications
-                        // For now, we can add it later when we have notification count
+                        if (unreadCount > 0) {
+                            Badge(
+                                containerColor = Color.Red,
+                                contentColor = Color.White
+                            )
+                        }
                     }
                 ) {
                     IconButton(
@@ -337,9 +361,17 @@ fun HomeScreenContent(
                             .background(Color.White.copy(alpha = 0.2f), CircleShape)
                     ) {
                         Icon(
-                            imageVector = Icons.Filled.Notifications,
+                            imageVector = if (unreadCount > 0) {
+                                Icons.Filled.Notifications
+                            } else {
+                                Icons.Outlined.Notifications
+                            },
                             contentDescription = "Thông báo",
-                            tint = Color.White,
+                            tint = if (unreadCount > 0) {
+                                Color(0xFFFFD700) // Màu vàng khi có thông báo chưa đọc
+                            } else {
+                                Color.White
+                            },
                             modifier = Modifier.size(24.dp)
                         )
                     }
@@ -370,17 +402,17 @@ fun HomeScreenContent(
             Tab(
                 selected = selectedTab == 0,
                 onClick = { selectedTab = 0 },
-                text = { Text("Home", color = if (selectedTab == 0) PeachPinkAccent else Color.Gray) }
+                text = { Text("Home", color = if (selectedTab == 0) PeachPinkAccent else Color.Black) }
             )
             Tab(
                 selected = selectedTab == 1,
                 onClick = { selectedTab = 1 },
-                text = { Text("Hãng sản phẩm", color = if (selectedTab == 1) PeachPinkAccent else Color.Gray) }
+                text = { Text("Hãng sản phẩm", color = if (selectedTab == 1) PeachPinkAccent else Color.Black) }
             )
             Tab(
                 selected = selectedTab == 2,
                 onClick = { selectedTab = 2 },
-                text = { Text("Sửa chữa điện thoại", color = if (selectedTab == 2) PeachPinkAccent else Color.Gray) }
+                text = { Text("Sửa chữa điện thoại", color = if (selectedTab == 2) PeachPinkAccent else Color.Black) }
             )
         }
 
@@ -419,7 +451,7 @@ fun HomeScreenContent(
                     Text(
                         text = "Vui lòng quay lại sau",
                         fontSize = 14.sp,
-                        color = Color.Gray,
+                        color = Color.Black,
                         modifier = Modifier.padding(bottom = 16.dp)
                     )
                     Button(
@@ -552,8 +584,7 @@ private fun RepairRequestTab(
 
                 val description = "${device.trim()} | ${issue.trim()}"
                 onSubmit(phone.trim(), email.trim(), address.trim(), description)
-                MessageManager.showSuccess("Đã gửi yêu cầu sửa chữa")
-                onNavigateToProfile()
+                // Thông báo thành công sẽ được xử lý trong CartViewModel sau khi API thành công
             },
             colors = ButtonDefaults.buttonColors(containerColor = PeachPinkAccent),
             modifier = Modifier.fillMaxWidth()
@@ -612,7 +643,7 @@ fun CategoryViewContent(
                     text = "Không có hãng sản phẩm nào",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = Color.Gray
+                    color = Color.Black
                 )
             }
         }
@@ -799,13 +830,13 @@ fun CategoryCardSimple(
                     text = categoryName,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = PeachPinkAccent
+                    color = Color.Black
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = "$productCount sản phẩm",
                     fontSize = 14.sp,
-                    color = Color.Gray
+                    color = Color.Black
                 )
             }
             Text(

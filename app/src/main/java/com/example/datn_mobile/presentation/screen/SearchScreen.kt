@@ -35,6 +35,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.example.datn_mobile.domain.model.Product
 import com.example.datn_mobile.presentation.theme.PeachPinkAccent
+import com.example.datn_mobile.presentation.theme.LightGray
 import com.example.datn_mobile.presentation.viewmodel.HomeViewModel
 import com.example.datn_mobile.presentation.viewmodel.SearchViewModel
 import java.util.Locale
@@ -133,7 +134,7 @@ fun SearchScreen(
                         Text(
                             text = "Thử tìm kiếm với từ khóa khác",
                             fontSize = 14.sp,
-                            color = Color.Gray
+                            color = Color.Black
                         )
                     }
                 }
@@ -148,7 +149,7 @@ fun SearchScreen(
                         Text(
                             text = "Kết quả tìm kiếm: ${filteredProducts.size} sản phẩm",
                             fontSize = 14.sp,
-                            color = Color.Gray,
+                            color = Color.Black,
                             modifier = Modifier.padding(vertical = 8.dp)
                         )
                     }
@@ -197,7 +198,7 @@ fun SearchScreen(
                         Text(
                             text = "Nhập từ khóa để tìm sản phẩm",
                             fontSize = 14.sp,
-                            color = Color.Gray
+                            color = Color.Black
                         )
                     }
                 }
@@ -266,7 +267,7 @@ private fun SearchHeader(
                 ),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Color.Blue,
-                    unfocusedBorderColor = Color.LightGray,
+                    unfocusedBorderColor = LightGray,
                     focusedTextColor = Color.Black,
                     unfocusedTextColor = Color.Black
                 ),
@@ -282,7 +283,7 @@ private fun SearchHeader(
                                 imageVector = Icons.Filled.Close,
                                 contentDescription = "Clear",
                                 modifier = Modifier.size(24.dp),
-                                tint = Color.Gray
+                                tint = LightGray
                             )
                         }
                     }
@@ -313,7 +314,7 @@ private fun RecentSearchSection(
             Text(
                 text = "Lịch sử tìm kiếm",
                 fontSize = 14.sp,
-                color = Color.Gray
+                color = Color.Black
             )
             TextButton(onClick = onClearAll) {
                 Text(
@@ -370,7 +371,7 @@ private fun RecentSearchItem(
                 modifier = Modifier
                     .size(20.dp)
                     .padding(end = 12.dp),
-                tint = Color.Gray
+                tint = LightGray
             )
             Text(
                 text = keyword,
@@ -388,7 +389,7 @@ private fun RecentSearchItem(
                 imageVector = Icons.Filled.Close,
                 contentDescription = "Remove",
                 modifier = Modifier.size(18.dp),
-                tint = Color.Gray
+                tint = LightGray
             )
         }
     }
@@ -490,7 +491,7 @@ fun SearchScreenEmptyPreview() {
                     Text(
                         text = "Nhập từ khóa để tìm sản phẩm",
                         fontSize = 14.sp,
-                        color = Color.Gray
+                        color = Color.Black
                     )
                 }
             }

@@ -14,7 +14,7 @@ import retrofit2.http.Query
 interface CartApiService {
 
     /**
-     * 1️⃣ Thêm sản phẩm vào giỏ hàng
+     * 1. Thêm sản phẩm vào giỏ hàng
      * POST /bej3/cart/add/{attId}
      *
      * Nếu sản phẩm chưa có trong giỏ → quantity = 1
@@ -24,14 +24,14 @@ interface CartApiService {
     suspend fun addToCart(@Path("attId") attId: String): Response<ApiResponse<CartItemResponse>>
 
     /**
-     * 2️⃣ Xem danh sách giỏ hàng
+     * 2. Xem danh sách giỏ hàng
      * GET /bej3/cart/view
      */
     @GET("/bej3/cart/view")
     suspend fun getCart(): Response<ApiResponse<List<CartItemResponse>>>
 
     /**
-     * 3️⃣ Đặt hàng (Place Order)
+     * 3. Đặt hàng (Place Order)
      * POST /bej3/cart/place-order
      *
      * Sau khi đặt hàng thành công, toàn bộ CartItem sẽ bị xóa khỏi giỏ
@@ -40,14 +40,14 @@ interface CartApiService {
     suspend fun placeOrder(@Body request: PlaceOrderRequest): Response<ApiResponse<OrderDetailsResponse>>
 
     /**
-     * 4️⃣ Xem lịch sử đơn hàng của tôi
+     * 4. Xem lịch sử đơn hàng của tôi
      * GET /bej3/cart/my-order
      */
     @GET("/bej3/cart/my-order")
     suspend fun getMyOrders(): Response<ApiResponse<List<OrderDetailsResponse>>>
 
     /**
-     * 5️⃣ Xóa 1 sản phẩm khỏi giỏ hàng
+     * 5. Xóa 1 sản phẩm khỏi giỏ hàng
      * DELETE /bej3/cart/remove/{cartItemId}
      *
      * Yêu cầu Bearer token
@@ -59,7 +59,7 @@ interface CartApiService {
     ): Response<ApiResponse<Unit>>
 
     /**
-     * 6️⃣ Cập nhật số lượng 1 sản phẩm trong giỏ hàng
+     * 6. Cập nhật số lượng 1 sản phẩm trong giỏ hàng
      * PUT /bej3/cart/update/{cartItemId}?quantity={quantity}
      *
      * - quantity phải nằm trong khoảng [1, 10]
@@ -88,7 +88,8 @@ data class CartItemResponse(
     val price: Long,                 // Giá sản phẩm
     val color: String,               // Màu sắc
     val productName: String,         // Tên sản phẩm
-    val img: String                  // URL ảnh
+    val img: String,                 // URL ảnh
+    val stockQuantity: Int? = null   // Số lượng tồn kho (từ ProductAttribute)
 )
 
 /**
@@ -116,6 +117,16 @@ data class PlaceOrderItemRequest(
 )
 
 /**
+ * Ghi chú đơn hàng
+ */
+@JsonClass(generateAdapter = true)
+data class OrderNoteResponse(
+    val note: String,                // Nội dung ghi chú
+    val updateTime: String,          // Thời gian cập nhật
+    val userName: String             // Tên người cập nhật
+)
+
+/**
  * Response từ API Place Order / My Orders
  */
 @JsonClass(generateAdapter = true)
@@ -132,7 +143,7 @@ data class OrderDetailsResponse(
     val type: Int,                   // 0 = đơn mua, 1 = đơn sửa
     val status: Int,                 // Trạng thái đơn hàng
     val orderItems: List<OrderItemResponse> = emptyList(), // Chi tiết các sản phẩm trong đơn
-    val orderNotes: List<String>? = emptyList() // Ghi chú đơn hàng (có thể null từ backend)
+    val orderNotes: List<OrderNoteResponse>? = emptyList() // Ghi chú đơn hàng (có thể null từ backend)
 )
 
 /**

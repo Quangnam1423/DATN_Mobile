@@ -41,7 +41,9 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.datn_mobile.presentation.viewmodel.EditProfileViewModel
 import com.example.datn_mobile.presentation.theme.LightPeachPink
+import com.example.datn_mobile.presentation.theme.LightGray
 import com.example.datn_mobile.presentation.theme.PeachPinkAccent
+import com.example.datn_mobile.presentation.theme.LightGray
 import com.example.datn_mobile.utils.MessageManager
 
 @Composable
@@ -150,11 +152,6 @@ private fun EditProfileContent(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
-                        text = "⚠️",
-                        fontSize = 48.sp,
-                        modifier = Modifier.padding(bottom = 16.dp)
-                    )
-                    Text(
                         text = state.error,
                         fontSize = 14.sp,
                         color = Color.Red,
@@ -195,7 +192,7 @@ private fun EditProfileContent(
             Text(
                 text = "Vui lòng điền các thông tin bên dưới",
                 fontSize = 14.sp,
-                color = Color.Gray,
+                color = Color.Black,
                 modifier = Modifier.padding(bottom = 32.dp)
             )
 
@@ -225,7 +222,7 @@ private fun EditProfileContent(
                     focusedTextColor = Color.Black,
                     unfocusedTextColor = Color.Black,
                     disabledContainerColor = LightPeachPink,
-                    disabledTextColor = Color.Gray
+                    disabledTextColor = LightGray
                 ),
                 textStyle = androidx.compose.ui.text.TextStyle(
                     fontSize = 16.sp
@@ -261,7 +258,7 @@ private fun EditProfileContent(
                     focusedTextColor = Color.Black,
                     unfocusedTextColor = Color.Black,
                     disabledContainerColor = LightPeachPink,
-                    disabledTextColor = Color.Gray
+                    disabledTextColor = LightGray
                 ),
                 textStyle = androidx.compose.ui.text.TextStyle(
                     fontSize = 16.sp
@@ -383,7 +380,7 @@ private fun EditProfileContent(
                 colors = ButtonDefaults.buttonColors(
                     containerColor = PeachPinkAccent,
                     contentColor = Color.White,
-                    disabledContainerColor = Color.Gray,
+                    disabledContainerColor = LightGray,
                     disabledContentColor = Color.White
                 )
             ) {
@@ -412,7 +409,7 @@ private fun EditProfileContent(
                     .height(56.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Gray,
+                    containerColor = LightGray,
                     contentColor = Color.White
                 )
             ) {

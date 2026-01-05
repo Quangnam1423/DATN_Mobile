@@ -30,7 +30,8 @@ data class CartState(
     val totalQuantity: Int = 0,        // Tổng số lượng các sản phẩm được chọn
     val selectedItemIds: Set<String> = emptySet(), // Danh sách ID sản phẩm đang được chọn
     val lastOrder: Order? = null,      // Đơn hàng vừa được tạo (nếu có)
-    val paymentRedirectUrl: String? = null // URL ZaloPay để redirect (nếu có)
+    val paymentRedirectUrl: String? = null, // URL ZaloPay để redirect (nếu có)
+    val shouldResetToHomeTab: Boolean = false // Flag để reset về tab Home sau khi tạo đơn sửa chữa thành công
 )
 
 data class OrderState(
@@ -89,7 +90,7 @@ class CartViewModel @Inject constructor(
     }
 
     /**
-     * 1️⃣ Tải giỏ hàng từ backend
+     * 1. Tải giỏ hàng từ backend
      * GET /bej3/cart/view
      * Response: {
      *   "result": [CartItem],
@@ -156,14 +157,14 @@ class CartViewModel @Inject constructor(
     }
 
     /**
-     * 2️⃣ Thêm sản phẩm vào giỏ hàng
+     * 2. Thêm sản phẩm vào giỏ hàng
      * POST /bej3/cart/add/{attId}
      * Validation: attId không được rỗng
      */
     fun addToCart(attId: String) {
         // Validate input
         if (attId.isBlank()) {
-            MessageManager.showError("❌ Lỗi: ID thuộc tính sản phẩm không được rỗng")
+            MessageManager.showError("Lỗi: ID thuộc tính sản phẩm không được rỗng")
             return
         }
 
@@ -173,7 +174,7 @@ class CartViewModel @Inject constructor(
 
                 when (val result = addToCartUseCase(attId.trim())) {
                     is Resource.Success -> {
-                        MessageManager.showSuccess("✅ Thêm vào giỏ hàng thành công")
+                        MessageManager.showSuccess("Thêm vào giỏ hàng thành công")
                         // Reload cart after adding to update totals
                         loadCart()
                     }
@@ -203,7 +204,7 @@ class CartViewModel @Inject constructor(
     }
 
     /**
-     * 3️⃣ Đặt hàng
+     * 3. Đặt hàng
      * POST /bej3/cart/place-order
      * Validation: Kiểm tra tất cả các tham số bắt buộc
      */
@@ -220,17 +221,24 @@ class CartViewModel @Inject constructor(
 
         Log.d(
             "CartDebug",
-            "placeOrder called: cartNull=${cart == null}, selectedIds=$selectedIds, " +
+            "placeOrder called: type=$type, cartNull=${cart == null}, selectedIds=$selectedIds, " +
                     "cartItems=${cart?.items?.size}"
         )
 
+        // Chỉ kiểm tra giỏ hàng nếu là đơn mua (type = 0)
+        if (type == 0) {
         if (cart == null || selectedIds.isEmpty()) {
-            MessageManager.showError("❌ Vui lòng chọn ít nhất 1 sản phẩm để thanh toán")
+            MessageManager.showError("Vui lòng chọn ít nhất 1 sản phẩm để thanh toán")
             return
         }
+        }
 
-        // Lấy danh sách item được chọn
-        val selectedItems = cart.items.filter { it.id in selectedIds }
+        // Lấy danh sách item được chọn (có thể rỗng nếu type = 1)
+        val selectedItems = if (type == 0 && cart != null) {
+            cart.items.filter { it.id in selectedIds }
+        } else {
+            emptyList()
+        }
         val (totalPrice, _) = calculateCartTotals(selectedItems)
 
         Log.d(
@@ -273,7 +281,22 @@ class CartViewModel @Inject constructor(
                             return@launch
                         }
 
-                        // Sau khi tạo đơn thành công -> gọi tiếp API tạo payment ZaloPay
+                        // Đơn sửa chữa (type = 1) không cần thanh toán ZaloPay
+                        if (type == 1) {
+                            MessageManager.showSuccess("Đã gửi yêu cầu sửa chữa thành công")
+                            
+                            _cartState.value = _cartState.value.copy(
+                                isUpdating = false,
+                                lastOrder = order,
+                                shouldResetToHomeTab = true
+                            )
+                            
+                            // Reload orders list
+                            loadMyOrders()
+                            return@launch
+                        }
+
+                        // Đơn mua (type = 0) -> gọi tiếp API tạo payment ZaloPay
                         when (val paymentResult = createZaloPayPaymentUseCase(order.id)) {
                             is Resource.Success -> {
                                 val zaloResult = paymentResult.data
@@ -286,7 +309,7 @@ class CartViewModel @Inject constructor(
                                     return@launch
                                 }
 
-                                MessageManager.showSuccess("✅ Đặt hàng thành công, đang chuyển đến ZaloPay...")
+                                MessageManager.showSuccess("Đặt hàng thành công, đang chuyển đến ZaloPay...")
 
                                 // Clear cart + lưu lại order + URL redirect
                                 _cartState.value = CartState(
@@ -345,12 +368,12 @@ class CartViewModel @Inject constructor(
     }
 
     /**
-     * 5️⃣ Xóa 1 sản phẩm khỏi giỏ hàng
+     * 5. Xóa 1 sản phẩm khỏi giỏ hàng
      * DELETE /bej3/cart/remove/{cartItemId}
      */
     fun removeFromCart(cartItemId: String) {
         if (cartItemId.isBlank()) {
-            MessageManager.showError("❌ ID sản phẩm trong giỏ không hợp lệ")
+            MessageManager.showError("ID sản phẩm trong giỏ không hợp lệ")
             return
         }
 
@@ -360,7 +383,7 @@ class CartViewModel @Inject constructor(
 
                 when (val result = removeFromCartUseCase(cartItemId.trim())) {
                     is Resource.Success -> {
-                        MessageManager.showSuccess("🗑️ Đã xóa sản phẩm khỏi giỏ")
+                        MessageManager.showSuccess("Đã xóa sản phẩm khỏi giỏ")
                         // Backend không trả về tổng mới → gọi lại GET /bej3/cart/view
                         loadCart()
                     }
@@ -390,20 +413,21 @@ class CartViewModel @Inject constructor(
     }
 
     /**
-     * 6️⃣ Tăng số lượng sản phẩm trong giỏ hàng (tối đa 10)
+     * 6. Tăng số lượng sản phẩm trong giỏ hàng (tối đa = stockQuantity)
      */
     fun increaseQuantity(item: CartItem) {
         val currentQty = item.quantity
-        val newQty = (currentQty + 1).coerceAtMost(10)
+        val maxQuantity = item.stockQuantity ?: Int.MAX_VALUE
+        val newQty = (currentQty + 1).coerceAtMost(maxQuantity)
         if (newQty == currentQty) {
-            MessageManager.showError("Số lượng tối đa cho mỗi sản phẩm là 10")
+            MessageManager.showError("Số lượng tối đa cho mỗi sản phẩm là $maxQuantity")
             return
         }
         updateItemQuantity(item, newQty)
     }
 
     /**
-     * 7️⃣ Giảm số lượng sản phẩm trong giỏ hàng (tối thiểu 1)
+     * 7. Giảm số lượng sản phẩm trong giỏ hàng (tối thiểu 1)
      */
     fun decreaseQuantity(item: CartItem) {
         val currentQty = item.quantity
@@ -415,7 +439,7 @@ class CartViewModel @Inject constructor(
     }
 
     /**
-     * 8️⃣ Chọn / bỏ chọn 1 sản phẩm trong giỏ hàng
+     * 8. Chọn / bỏ chọn 1 sản phẩm trong giỏ hàng
      */
     fun toggleItemSelection(item: CartItem) {
         val currentState = _cartState.value
@@ -520,30 +544,30 @@ class CartViewModel @Inject constructor(
     ): String? {
         // Kiểm tra số điện thoại
         if (phoneNumber.isBlank()) {
-            return "❌ Số điện thoại không được rỗng"
+            return "Số điện thoại không được rỗng"
         }
         if (!isValidPhoneNumber(phoneNumber.trim())) {
-            return "❌ Số điện thoại không hợp lệ"
+            return "Số điện thoại không hợp lệ"
         }
 
         // Kiểm tra email
         if (email.isBlank()) {
-            return "❌ Email không được rỗng"
+            return "Email không được rỗng"
         }
         if (!isValidEmail(email.trim())) {
-            return "❌ Email không hợp lệ"
+            return "Email không hợp lệ"
         }
 
         // type 0 = mua: yêu cầu địa chỉ, totalPrice > 0, items không rỗng
         if (type == 0) {
             if (address.isBlank()) {
-                return "❌ Địa chỉ không được rỗng"
+                return "Địa chỉ không được rỗng"
             }
             if (totalPrice <= 0) {
-                return "❌ Tổng tiền phải lớn hơn 0"
+                return "Tổng tiền phải lớn hơn 0"
             }
             if (items.isEmpty()) {
-                return "❌ Giỏ hàng không có sản phẩm"
+                return "Giỏ hàng không có sản phẩm"
             }
         }
         // type 1 = sửa: cho phép bỏ qua address/totalPrice/items (ẩn trên UI)
@@ -552,7 +576,7 @@ class CartViewModel @Inject constructor(
         if (items.isNotEmpty()) {
             for (item in items) {
                 if (item.first.isBlank() || item.second.isBlank()) {
-                    return "❌ ID sản phẩm hoặc ID thuộc tính không được rỗng"
+                    return "ID sản phẩm hoặc ID thuộc tính không được rỗng"
                 }
             }
         }
@@ -575,7 +599,7 @@ class CartViewModel @Inject constructor(
     }
 
     /**
-     * 4️⃣ Xem lịch sử đơn hàng
+     * 4. Xem lịch sử đơn hàng
      * GET /bej3/cart/my-order
      */
     fun loadMyOrders() {
@@ -612,6 +636,13 @@ class CartViewModel @Inject constructor(
      */
     fun clearPaymentRedirect() {
         _cartState.value = _cartState.value.copy(paymentRedirectUrl = null)
+    }
+
+    /**
+     * Reset flag về tab Home sau khi đã xử lý
+     */
+    fun clearResetToHomeTabFlag() {
+        _cartState.value = _cartState.value.copy(shouldResetToHomeTab = false)
     }
 }
 
