@@ -22,6 +22,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -122,6 +125,7 @@ fun NotificationScreen(
                 // Khi đã chọn 1 thông báo → hiển thị full màn chi tiết
                 NotificationDetail(
                     notification = selected,
+                    viewModel = viewModel,
                     onClose = { selectedNotificationState.value = null }
                 )
             } else {
@@ -322,8 +326,15 @@ private fun NotificationCard(
 @Composable
 private fun NotificationDetail(
     notification: NotificationResponse,
+    viewModel: NotificationViewModel,
     onClose: () -> Unit
 ) {
+    val notificationState by viewModel.notificationState.collectAsState()
+    val isRepairConfirmation = notification.type == "REPAIR_TECHNICIAN_MESSAGE"
+    val orderId = notification.resourceId
+    val isConfirmed = orderId != null && notificationState.confirmedOrderId == orderId
+    val isConfirming = notificationState.isConfirming && orderId != null
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -337,17 +348,47 @@ private fun NotificationDetail(
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
+            // Header with icon and title
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = notification.title ?: "Chi tiết thông báo",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Black
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    // Icon based on state
+                    Icon(
+                        imageVector = if (isConfirmed) Icons.Filled.CheckCircle else Icons.Filled.Notifications,
+                        contentDescription = null,
+                        tint = if (isConfirmed) Color(0xFF4CAF50) else Color(0xFFFFC107),
+                        modifier = Modifier.size(24.dp)
+                    )
+                    
+                    Text(
+                        text = if (isConfirmed) "Đã xác nhận thành công!" else (notification.title ?: "Chi tiết thông báo"),
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Black
+                    )
+                    
+                    // [Mới] tag for unread notifications
+                    if (notification.read == false && !isConfirmed) {
+                        Text(
+                            text = "[Mới]",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFFFF5722),
+                            modifier = Modifier
+                                .background(
+                                    Color(0xFFFF5722).copy(alpha = 0.1f),
+                                    RoundedCornerShape(4.dp)
+                                )
+                                .padding(horizontal = 6.dp, vertical = 2.dp)
+                        )
+                    }
+                }
 
                 Text(
                     text = "Đóng",
@@ -359,21 +400,86 @@ private fun NotificationDetail(
                 )
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-            Text(
-                text = notification.body ?: "",
-                fontSize = 14.sp,
-                color = Color.Black
-            )
+            // Body content
+            if (isConfirmed) {
+                // Success message after confirmation
+                Text(
+                    text = "Đơn sửa chữa của bạn đã được xác nhận.\nChúng tôi sẽ tiến hành sửa chữa ngay.",
+                    fontSize = 14.sp,
+                    color = Color.Black,
+                    lineHeight = 20.sp
+                )
+            } else {
+                Text(
+                    text = notification.body ?: "",
+                    fontSize = 14.sp,
+                    color = Color.Black,
+                    lineHeight = 20.sp
+                )
+            }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-            Text(
-                text = formatNotificationTime(notification.createdAt),
-                fontSize = 12.sp,
-                color = Color.Black
-            )
+            // Confirmation button for repair technician messages
+            if (isRepairConfirmation && orderId != null && !isConfirmed) {
+                Button(
+                    onClick = {
+                        viewModel.confirmRepairOrder(orderId, notification.id)
+                    },
+                    enabled = !isConfirming,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF4CAF50),
+                        contentColor = Color.White
+                    )
+                ) {
+                    if (isConfirming) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            color = Color.White,
+                            strokeWidth = 2.dp
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Đang xử lý...", fontSize = 14.sp)
+                    } else {
+                        Icon(
+                            imageVector = Icons.Filled.CheckCircle,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Đồng ý sửa chữa",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+
+            // Timestamp
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Notifications,
+                    contentDescription = null,
+                    modifier = Modifier.size(14.dp),
+                    tint = Color.Gray
+                )
+                Text(
+                    text = formatNotificationTime(notification.createdAt),
+                    fontSize = 12.sp,
+                    color = Color.Gray
+                )
+            }
         }
     }
 }
@@ -393,7 +499,8 @@ private fun formatNotificationTime(createdAt: String?): String {
             diff.toHours() < 24 -> "${diff.toHours()} giờ trước"
             diff.toDays() < 7 -> "${diff.toDays()} ngày trước"
             else -> {
-                val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy", Locale("vi"))
+                // Format: dd/MM/yyyy HH:mm (like "10/01/2025 10:30")
+                val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm", Locale("vi"))
                 dateTime.format(formatter)
             }
         }

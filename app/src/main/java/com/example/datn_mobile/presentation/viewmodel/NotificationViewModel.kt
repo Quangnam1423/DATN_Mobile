@@ -6,6 +6,7 @@ import com.example.datn_mobile.data.network.dto.NotificationResponse
 import com.example.datn_mobile.data.util.Resource
 import com.example.datn_mobile.domain.usecase.GetMyNotificationsUseCase
 import com.example.datn_mobile.domain.usecase.MarkNotificationAsReadUseCase
+import com.example.datn_mobile.domain.usecase.ConfirmRepairOrderUseCase
 import com.example.datn_mobile.utils.MessageManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,13 +17,16 @@ import javax.inject.Inject
 data class NotificationState(
     val notifications: List<NotificationResponse> = emptyList(),
     val isLoading: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val isConfirming: Boolean = false,
+    val confirmedOrderId: String? = null
 )
 
 @HiltViewModel
 class NotificationViewModel @Inject constructor(
     private val getMyNotificationsUseCase: GetMyNotificationsUseCase,
-    private val markNotificationAsReadUseCase: MarkNotificationAsReadUseCase
+    private val markNotificationAsReadUseCase: MarkNotificationAsReadUseCase,
+    private val confirmRepairOrderUseCase: ConfirmRepairOrderUseCase
 ) : ViewModel() {
 
     private val _notificationState = MutableStateFlow(NotificationState())
@@ -83,6 +87,54 @@ class NotificationViewModel @Inject constructor(
                     MessageManager.showError(result.message ?: "Không thể đánh dấu thông báo đã đọc")
                 }
                 else -> Unit
+            }
+        }
+    }
+
+    fun confirmRepairOrder(orderId: String, notificationId: String? = null) {
+        if (orderId.isBlank()) {
+            MessageManager.showError("ID đơn hàng không hợp lệ")
+            return
+        }
+
+        viewModelScope.launch {
+            _notificationState.value = _notificationState.value.copy(
+                isConfirming = true,
+                error = null
+            )
+
+            when (val result = confirmRepairOrderUseCase(orderId)) {
+                is Resource.Success -> {
+                    // Mark notification as read if notificationId is provided
+                    notificationId?.let { id ->
+                        val current = _notificationState.value.notifications
+                        val updated = current.map {
+                            if (it.id == id) it.copy(read = true) else it
+                        }
+                        _notificationState.value = _notificationState.value.copy(notifications = updated)
+                        markNotificationAsReadUseCase(id)
+                    }
+                    
+                    _notificationState.value = _notificationState.value.copy(
+                        isConfirming = false,
+                        confirmedOrderId = orderId
+                    )
+                    MessageManager.showSuccess("Đã xác nhận thành công! Chúng tôi sẽ tiến hành sửa chữa ngay.")
+                    // Reload notifications to update status
+                    loadNotifications()
+                }
+                is Resource.Error -> {
+                    _notificationState.value = _notificationState.value.copy(
+                        isConfirming = false,
+                        error = result.message
+                    )
+                    MessageManager.showError(result.message ?: "Không thể xác nhận đơn hàng")
+                }
+                is Resource.Loading -> {
+                    _notificationState.value = _notificationState.value.copy(
+                        isConfirming = true
+                    )
+                }
             }
         }
     }

@@ -71,6 +71,18 @@ interface CartApiService {
         @Path("cartItemId") cartItemId: String,
         @Query("quantity") quantity: Int
     ): Response<ApiResponse<CartItemResponse>>
+
+    /**
+     * 7. Xác nhận đơn sửa chữa
+     * PUT /bej3/orders/repair-order/{orderId}/confirm
+     *
+     * - Yêu cầu Bearer token
+     * - Response: OrderDetailsResponse với status = 2 (Đã thanh toán)
+     */
+    @PUT("/bej3/orders/repair-order/{orderId}/confirm")
+    suspend fun confirmRepairOrder(
+        @Path("orderId") orderId: String
+    ): Response<ApiResponse<OrderDetailsResponse>>
 }
 
 // DTO classes for API response
@@ -132,15 +144,15 @@ data class OrderNoteResponse(
 @JsonClass(generateAdapter = true)
 data class OrderDetailsResponse(
     val id: String,                  // ID đơn hàng
-    val userName: String,            // Tên người dùng
-    val phoneNumber: String,         // SĐT giao hàng
-    val email: String,               // Email giao hàng
+    val userName: String? = null,    // Tên người dùng
+    val phoneNumber: String? = null, // SĐT giao hàng (có thể null trong response confirm)
+    val email: String? = null,       // Email giao hàng
     val address: String? = null,     // Địa chỉ giao hàng
     val description: String? = null, // Ghi chú
-    val totalPrice: Double,          // Tổng tiền
-    val orderAt: String,             // Ngày đặt hàng (YYYY-MM-DD)
+    val totalPrice: Double? = null,  // Tổng tiền
+    val orderAt: String? = null,     // Ngày đặt hàng (YYYY-MM-DD)
     val updatedAt: String? = null,   // Ngày cập nhật
-    val type: Int,                   // 0 = đơn mua, 1 = đơn sửa
+    val type: Int? = null,           // 0 = đơn mua, 1 = đơn sửa
     val status: Int,                 // Trạng thái đơn hàng
     val orderItems: List<OrderItemResponse> = emptyList(), // Chi tiết các sản phẩm trong đơn
     val orderNotes: List<OrderNoteResponse>? = emptyList() // Ghi chú đơn hàng (có thể null từ backend)

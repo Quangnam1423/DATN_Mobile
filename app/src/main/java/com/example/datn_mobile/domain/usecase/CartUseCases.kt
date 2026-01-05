@@ -119,4 +119,19 @@ class UpdateCartItemQuantityUseCase @Inject constructor(
     }
 }
 
+/**
+ * 7. Xác nhận đơn sửa chữa
+ * PUT /bej3/orders/repair-order/{orderId}/confirm
+ */
+class ConfirmRepairOrderUseCase @Inject constructor(
+    private val cartRepository: CartRepository
+) {
+    suspend operator fun invoke(orderId: String): Resource<Order> {
+        if (orderId.isBlank()) {
+            return Resource.Error("ID đơn hàng không hợp lệ")
+        }
+        return cartRepository.confirmRepairOrder(orderId)
+    }
+}
+
 

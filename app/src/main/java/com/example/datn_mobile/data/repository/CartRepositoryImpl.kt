@@ -243,6 +243,39 @@ class CartRepositoryImpl @Inject constructor(
             Resource.Error("Lỗi không xác định: ${e.message}")
         }
     }
+
+    /**
+     * 7. Xác nhận đơn sửa chữa
+     * PUT /bej3/orders/repair-order/{orderId}/confirm
+     *
+     * Trả về OrderDetailsResponse với status = 2 (Đã thanh toán)
+     */
+    override suspend fun confirmRepairOrder(orderId: String): Resource<Order> {
+        return try {
+            val response = cartApiService.confirmRepairOrder(orderId)
+            if (response.isSuccessful) {
+                val apiResponse = response.body()
+                if (apiResponse?.result != null) {
+                    Resource.Success(apiResponse.result.toOrderDomain())
+                } else {
+                    Resource.Error("Phản hồi xác nhận đơn hàng rỗng")
+                }
+            } else {
+                when (response.code()) {
+                    400 -> Resource.Error("Thông tin đơn hàng không hợp lệ")
+                    401 -> Resource.Error("Vui lòng đăng nhập")
+                    404 -> Resource.Error("Đơn hàng không tồn tại")
+                    else -> Resource.Error("Lỗi xác nhận đơn hàng: ${response.message()}")
+                }
+            }
+        } catch (e: HttpException) {
+            Resource.Error("Lỗi mạng: ${e.message()}")
+        } catch (e: IOException) {
+            Resource.Error("Lỗi kết nối: ${e.message}")
+        } catch (e: Exception) {
+            Resource.Error("Lỗi không xác định: ${e.message}")
+        }
+    }
 }
 
 // Extension functions to convert API response to domain model
@@ -296,15 +329,15 @@ fun com.example.datn_mobile.data.network.api.OrderNoteResponse.toOrderNoteDomain
 fun com.example.datn_mobile.data.network.api.OrderDetailsResponse.toOrderDomain(): Order {
     return Order(
         id = this.id,
-        userName = this.userName,
-        phoneNumber = this.phoneNumber,
-        email = this.email,
+        userName = this.userName ?: "",
+        phoneNumber = this.phoneNumber ?: "",
+        email = this.email ?: "",
         address = this.address,
         description = this.description,
-        totalPrice = this.totalPrice,
-        orderAt = this.orderAt,
+        totalPrice = this.totalPrice ?: 0.0,
+        orderAt = this.orderAt ?: "",
         updatedAt = this.updatedAt,
-        type = this.type,
+        type = this.type ?: 1, // Mặc định là đơn sửa chữa
         status = this.status,
         orderItems = this.orderItems.map { item ->
             com.example.datn_mobile.domain.model.OrderItem(

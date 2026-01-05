@@ -49,5 +49,11 @@ interface CartRepository {
      * PUT /bej3/cart/update/{cartItemId}?quantity={quantity}
      */
     suspend fun updateCartItemQuantity(cartItemId: String, quantity: Int): Resource<CartItem>
+
+    /**
+     * 7. Xác nhận đơn sửa chữa
+     * PUT /bej3/orders/repair-order/{orderId}/confirm
+     */
+    suspend fun confirmRepairOrder(orderId: String): Resource<Order>
 }
 
