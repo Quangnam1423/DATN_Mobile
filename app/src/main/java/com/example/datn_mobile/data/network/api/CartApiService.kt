@@ -4,14 +4,17 @@ import com.example.datn_mobile.data.network.dto.ApiResponse
 import com.squareup.moshi.JsonClass
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.PUT
 import retrofit2.http.GET
+import retrofit2.http.DELETE
 import retrofit2.http.POST
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface CartApiService {
 
     /**
-     * 1️⃣ Thêm sản phẩm vào giỏ hàng
+     * 1. Thêm sản phẩm vào giỏ hàng
      * POST /bej3/cart/add/{attId}
      *
      * Nếu sản phẩm chưa có trong giỏ → quantity = 1
@@ -21,14 +24,14 @@ interface CartApiService {
     suspend fun addToCart(@Path("attId") attId: String): Response<ApiResponse<CartItemResponse>>
 
     /**
-     * 2️⃣ Xem danh sách giỏ hàng
+     * 2. Xem danh sách giỏ hàng
      * GET /bej3/cart/view
      */
     @GET("/bej3/cart/view")
     suspend fun getCart(): Response<ApiResponse<List<CartItemResponse>>>
 
     /**
-     * 3️⃣ Đặt hàng (Place Order)
+     * 3. Đặt hàng (Place Order)
      * POST /bej3/cart/place-order
      *
      * Sau khi đặt hàng thành công, toàn bộ CartItem sẽ bị xóa khỏi giỏ
@@ -37,11 +40,49 @@ interface CartApiService {
     suspend fun placeOrder(@Body request: PlaceOrderRequest): Response<ApiResponse<OrderDetailsResponse>>
 
     /**
-     * 4️⃣ Xem lịch sử đơn hàng của tôi
+     * 4. Xem lịch sử đơn hàng của tôi
      * GET /bej3/cart/my-order
      */
     @GET("/bej3/cart/my-order")
     suspend fun getMyOrders(): Response<ApiResponse<List<OrderDetailsResponse>>>
+
+    /**
+     * 5. Xóa 1 sản phẩm khỏi giỏ hàng
+     * DELETE /bej3/cart/remove/{cartItemId}
+     *
+     * Yêu cầu Bearer token
+     * Response: { "code": 1000 }
+     */
+    @DELETE("/bej3/cart/remove/{cartItemId}")
+    suspend fun removeFromCart(
+        @Path("cartItemId") cartItemId: String
+    ): Response<ApiResponse<Unit>>
+
+    /**
+     * 6. Cập nhật số lượng 1 sản phẩm trong giỏ hàng
+     * PUT /bej3/cart/update/{cartItemId}?quantity={quantity}
+     *
+     * - quantity phải nằm trong khoảng [1, 10]
+     * - Yêu cầu Bearer token (được cấu hình ở Retrofit/OkHttp interceptor)
+     * - Response: CartItemResponse vừa được cập nhật
+     */
+    @PUT("/bej3/cart/update/{cartItemId}")
+    suspend fun updateCartItemQuantity(
+        @Path("cartItemId") cartItemId: String,
+        @Query("quantity") quantity: Int
+    ): Response<ApiResponse<CartItemResponse>>
+
+    /**
+     * 7. Xác nhận đơn sửa chữa
+     * PUT /bej3/orders/repair-order/{orderId}/confirm
+     *
+     * - Yêu cầu Bearer token
+     * - Response: OrderDetailsResponse với status = 2 (Đã thanh toán)
+     */
+    @PUT("/bej3/orders/repair-order/{orderId}/confirm")
+    suspend fun confirmRepairOrder(
+        @Path("orderId") orderId: String
+    ): Response<ApiResponse<OrderDetailsResponse>>
 }
 
 // DTO classes for API response
@@ -59,7 +100,8 @@ data class CartItemResponse(
     val price: Long,                 // Giá sản phẩm
     val color: String,               // Màu sắc
     val productName: String,         // Tên sản phẩm
-    val img: String                  // URL ảnh
+    val img: String,                 // URL ảnh
+    val stockQuantity: Int? = null   // Số lượng tồn kho (từ ProductAttribute)
 )
 
 /**
@@ -67,6 +109,7 @@ data class CartItemResponse(
  */
 @JsonClass(generateAdapter = true)
 data class PlaceOrderRequest(
+    val type: Int = 0,               // 0 = đơn mua, 1 = đơn sửa
     val phoneNumber: String,         // Số điện thoại giao hàng (bắt buộc)
     val email: String,               // Email giao hàng (bắt buộc)
     val address: String,             // Địa chỉ giao hàng (bắt buộc)
@@ -86,20 +129,33 @@ data class PlaceOrderItemRequest(
 )
 
 /**
+ * Ghi chú đơn hàng
+ */
+@JsonClass(generateAdapter = true)
+data class OrderNoteResponse(
+    val note: String,                // Nội dung ghi chú
+    val updateTime: String,          // Thời gian cập nhật
+    val userName: String             // Tên người cập nhật
+)
+
+/**
  * Response từ API Place Order / My Orders
  */
 @JsonClass(generateAdapter = true)
 data class OrderDetailsResponse(
     val id: String,                  // ID đơn hàng
-    val userName: String,            // Tên người dùng
-    val phoneNumber: String,         // SĐT giao hàng
-    val email: String,               // Email giao hàng
-    val address: String,             // Địa chỉ giao hàng
+    val userName: String? = null,    // Tên người dùng
+    val phoneNumber: String? = null, // SĐT giao hàng (có thể null trong response confirm)
+    val email: String? = null,       // Email giao hàng
+    val address: String? = null,     // Địa chỉ giao hàng
     val description: String? = null, // Ghi chú
-    val totalPrice: Long,            // Tổng tiền
-    val orderAt: String,             // Ngày đặt hàng (YYYY-MM-DD)
+    val totalPrice: Double? = null,  // Tổng tiền
+    val orderAt: String? = null,     // Ngày đặt hàng (YYYY-MM-DD)
     val updatedAt: String? = null,   // Ngày cập nhật
-    val orderItems: List<OrderItemResponse> // Chi tiết các sản phẩm trong đơn
+    val type: Int? = null,           // 0 = đơn mua, 1 = đơn sửa
+    val status: Int,                 // Trạng thái đơn hàng
+    val orderItems: List<OrderItemResponse> = emptyList(), // Chi tiết các sản phẩm trong đơn
+    val orderNotes: List<OrderNoteResponse>? = emptyList() // Ghi chú đơn hàng (có thể null từ backend)
 )
 
 /**

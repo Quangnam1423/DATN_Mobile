@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -19,6 +21,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -33,15 +36,22 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Add
 import com.example.datn_mobile.domain.model.Cart
 import com.example.datn_mobile.domain.model.CartItem
+import com.example.datn_mobile.presentation.theme.LightPeachPink
+import com.example.datn_mobile.presentation.theme.LightGray
+import com.example.datn_mobile.presentation.theme.PeachPinkAccent
+import com.example.datn_mobile.presentation.theme.LightGray
 import com.example.datn_mobile.presentation.viewmodel.CartViewModel
 
 @Composable
 fun CartScreen(
     viewModel: CartViewModel = hiltViewModel(),
     onBackClick: () -> Unit = {},
-    onCheckoutClick: () -> Unit = {}
+    onCheckoutClick: () -> Unit = {},
+    onContinueShoppingClick: () -> Unit = onBackClick
 ) {
     val cartState by viewModel.cartState.collectAsState()
 
@@ -62,12 +72,27 @@ fun CartScreen(
                 CircularProgressIndicator()
             }
         } else if (cartState.cart == null || cartState.cart!!.items.isEmpty()) {
-            EmptyCartScreen(onContinueShopping = onBackClick)
+            EmptyCartScreen(onContinueShopping = onContinueShoppingClick)
         } else {
             CartContent(
                 cart = cartState.cart!!,
                 isUpdating = cartState.isUpdating,
-                onCheckout = onCheckoutClick
+                totalPrice = cartState.totalPrice,
+                totalQuantity = cartState.totalQuantity,
+                onCheckout = onCheckoutClick,
+                onRemoveItem = { item ->
+                    viewModel.removeFromCart(item.id)
+                },
+                onIncreaseQuantity = { item ->
+                    viewModel.increaseQuantity(item)
+                },
+                onDecreaseQuantity = { item ->
+                    viewModel.decreaseQuantity(item)
+                },
+                selectedItemIds = cartState.selectedItemIds,
+                onToggleSelect = { item ->
+                    viewModel.toggleItemSelection(item)
+                }
             )
         }
     }
@@ -78,7 +103,8 @@ private fun CartHeader(onBackClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFF2196F3))
+            .statusBarsPadding()
+            .background(PeachPinkAccent)
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
@@ -114,11 +140,6 @@ private fun EmptyCartScreen(onContinueShopping: () -> Unit) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Text(
-                text = "🛒",
-                fontSize = 64.sp,
-                modifier = Modifier.padding(bottom = 24.dp)
-            )
 
             Text(
                 text = "Giỏ hàng của bạn trống",
@@ -130,7 +151,7 @@ private fun EmptyCartScreen(onContinueShopping: () -> Unit) {
             Text(
                 text = "Thêm sản phẩm để bắt đầu mua sắm",
                 fontSize = 14.sp,
-                color = Color.Gray,
+                color = Color.Black,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(bottom = 32.dp)
             )
@@ -140,7 +161,7 @@ private fun EmptyCartScreen(onContinueShopping: () -> Unit) {
                 modifier = Modifier
                     .fillMaxWidth(0.7f)
                     .height(48.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2196F3))
+                colors = ButtonDefaults.buttonColors(containerColor = PeachPinkAccent)
             ) {
                 Text("Tiếp tục mua sắm")
             }
@@ -152,7 +173,14 @@ private fun EmptyCartScreen(onContinueShopping: () -> Unit) {
 private fun CartContent(
     cart: Cart,
     isUpdating: Boolean,
-    onCheckout: () -> Unit
+    totalPrice: Long,
+    totalQuantity: Int,
+    onCheckout: () -> Unit,
+    onRemoveItem: (CartItem) -> Unit,
+    onIncreaseQuantity: (CartItem) -> Unit,
+    onDecreaseQuantity: (CartItem) -> Unit,
+    selectedItemIds: Set<String>,
+    onToggleSelect: (CartItem) -> Unit
 ) {
     Column(
         modifier = Modifier.fillMaxSize()
@@ -166,13 +194,21 @@ private fun CartContent(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             items(cart.items) { item ->
-                CartItemCard(item = item)
+                CartItemCard(
+                    item = item,
+                    isSelected = selectedItemIds.contains(item.id),
+                    onToggleSelect = { onToggleSelect(item) },
+                    onRemoveClick = { onRemoveItem(item) },
+                    onIncreaseClick = { onIncreaseQuantity(item) },
+                    onDecreaseClick = { onDecreaseQuantity(item) }
+                )
             }
         }
 
         // Summary & Checkout
         CartSummary(
-            cart = cart,
+            totalPrice = totalPrice,
+            totalQuantity = totalQuantity,
             isUpdating = isUpdating,
             onCheckout = onCheckout
         )
@@ -181,7 +217,12 @@ private fun CartContent(
 
 @Composable
 private fun CartItemCard(
-    item: CartItem
+    item: CartItem,
+    isSelected: Boolean,
+    onToggleSelect: () -> Unit,
+    onRemoveClick: () -> Unit,
+    onIncreaseClick: () -> Unit,
+    onDecreaseClick: () -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -195,10 +236,26 @@ private fun CartItemCard(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Product info
+            // Checkbox chọn sản phẩm
+            Checkbox(
+                checked = isSelected,
+                onCheckedChange = { onToggleSelect() }
+            )
+
+            // Delete icon on the left
+            IconButton(onClick = onRemoveClick) {
+                Icon(
+                    imageVector = Icons.Filled.Delete,
+                    contentDescription = "Xóa khỏi giỏ hàng",
+                    tint = Color.Red
+                )
+            }
+
+            // Product info + quantity controls
             Column(
                 modifier = Modifier.weight(1f)
             ) {
+                // Tên sản phẩm
                 Text(
                     text = item.productName,
                     fontSize = 14.sp,
@@ -206,22 +263,75 @@ private fun CartItemCard(
                     maxLines = 2
                 )
 
+                // Phân loại (dung lượng, màu, size...)
+                if (item.productAttName.isNotBlank() || item.color.isNotBlank()) {
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        if (item.productAttName.isNotBlank()) {
+                            Text(
+                                text = item.productAttName,
+                                fontSize = 12.sp,
+                                color = Color.Black
+                            )
+                        }
+                        if (item.color.isNotBlank()) {
+                            Text(
+                                text = "• Màu: ${item.color}",
+                                fontSize = 12.sp,
+                                color = Color.Black
+                            )
+                        }
+                    }
+                }
+
                 Spacer(modifier = Modifier.height(4.dp))
 
+                // Giá đơn vị
                 Text(
                     text = "${item.price.toFormattedPrice()} đ",
                     fontSize = 12.sp,
-                    color = Color.Gray
+                    color = Color.Black
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Quantity display
-                Text(
-                    text = "Số lượng: ${item.quantity}",
-                    fontSize = 12.sp,
-                    color = Color.Gray
-                )
+                // Quantity controls
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    IconButton(
+                        onClick = onDecreaseClick,
+                        enabled = item.quantity > 1
+                    ) {
+                        Text(
+                            text = "-",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = if (item.quantity > 1) PeachPinkAccent else Color.Black
+                        )
+                    }
+
+                    Text(
+                        text = item.quantity.toString(),
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    val maxQuantity = item.stockQuantity ?: Int.MAX_VALUE
+                    IconButton(
+                        onClick = onIncreaseClick,
+                        enabled = item.quantity < maxQuantity
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Add,
+                            contentDescription = "Tăng số lượng",
+                            tint = if (item.quantity < maxQuantity) PeachPinkAccent else LightGray
+                        )
+                    }
+                }
             }
 
             // Total price
@@ -233,7 +343,7 @@ private fun CartItemCard(
                     text = "${(item.price * item.quantity).toFormattedPrice()} đ",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF2196F3)
+                    color = PeachPinkAccent
                 )
             }
         }
@@ -242,14 +352,15 @@ private fun CartItemCard(
 
 @Composable
 private fun CartSummary(
-    cart: Cart,
+    totalPrice: Long,
+    totalQuantity: Int,
     isUpdating: Boolean,
     onCheckout: () -> Unit
 ) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFFF5F5F5))
+            .background(LightPeachPink)
             .padding(16.dp)
     ) {
         // Summary items
@@ -259,8 +370,8 @@ private fun CartSummary(
                 .padding(bottom = 8.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text("Số lượng sản phẩm:", fontSize = 14.sp, color = Color.Gray)
-            Text(cart.totalQuantity.toString(), fontSize = 14.sp, fontWeight = FontWeight.Bold)
+            Text("Số lượng sản phẩm:", fontSize = 14.sp, color = Color.Black)
+            Text(totalQuantity.toString(), fontSize = 14.sp, fontWeight = FontWeight.Bold)
         }
 
         Row(
@@ -269,12 +380,12 @@ private fun CartSummary(
                 .padding(bottom = 16.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text("Tổng tiền:", fontSize = 14.sp, color = Color.Gray)
+            Text("Tổng tiền:", fontSize = 14.sp, color = Color.Black)
             Text(
-                "${cart.totalPrice.toFormattedPrice()} đ",
+                "${totalPrice.toFormattedPrice()} đ",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF2196F3)
+                color = PeachPinkAccent
             )
         }
 
@@ -283,11 +394,11 @@ private fun CartSummary(
         // Checkout button
         Button(
             onClick = onCheckout,
-            enabled = !isUpdating && cart.items.isNotEmpty(),
+            enabled = !isUpdating && totalQuantity > 0,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(48.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2196F3))
+            colors = ButtonDefaults.buttonColors(containerColor = PeachPinkAccent)
         ) {
             Text(
                 text = if (isUpdating) "Đang cập nhật..." else "Thanh toán",

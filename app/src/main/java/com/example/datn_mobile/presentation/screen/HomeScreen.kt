@@ -18,6 +18,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.datn_mobile.domain.model.Product
+import com.example.datn_mobile.presentation.theme.PeachPinkAccent
+import com.example.datn_mobile.presentation.theme.LightGray
 import com.example.datn_mobile.presentation.viewmodel.HomeViewModel
 import java.util.Locale
 import com.example.datn_mobile.utils.MessageManager
@@ -47,13 +49,16 @@ fun HomeScreen(
     }
 
     Column(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
+            .statusBarsPadding()
     ) {
         // Header
         Text(
             text = "Cửa hàng",
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
+            color = PeachPinkAccent,
             modifier = Modifier.padding(16.dp)
         )
 
@@ -92,10 +97,13 @@ fun HomeScreen(
                     Text(
                         text = "Vui lòng quay lại sau",
                         fontSize = 14.sp,
-                        color = Color.Gray,
+                        color = Color.Black,
                         modifier = Modifier.padding(bottom = 16.dp)
                     )
-                    Button(onClick = { viewModel.loadProducts() }) {
+                    Button(
+                        onClick = { viewModel.loadProducts() },
+                        colors = ButtonDefaults.buttonColors(containerColor = PeachPinkAccent)
+                    ) {
                         Text("Tải lại")
                     }
                 }
@@ -178,12 +186,14 @@ fun ProductCard(
             // 3. Giá sản phẩm
             Column {
                 // Giá bán (finalPrice)
-                val displayPrice = product.variant.finalPrice ?: product.variant.price ?: 0L
+                val displayPrice = ((product.variant.finalPrice
+                    ?: product.variant.price
+                    ?: 0.0)).toLong()
                 Text(
                     text = "${String.format(Locale.US, "%,d", displayPrice)} đ",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.Red
+                    color = PeachPinkAccent
                 )
 
                 // Giá gốc (originalPrice) - chỉ hiển thị nếu có giảm giá
@@ -192,10 +202,11 @@ fun ProductCard(
 
                     Spacer(modifier = Modifier.height(4.dp))
 
+                    val originalPrice = (product.variant.originalPrice ?: 0.0).toLong()
                     Text(
-                        text = "${String.format(Locale.US, "%,d", product.variant.originalPrice)} đ",
+                        text = "${String.format(Locale.US, "%,d", originalPrice)} đ",
                         fontSize = 11.sp,
-                        color = Color.Gray,
+                        color = Color.Black,
                         textDecoration = TextDecoration.LineThrough
                     )
                 }
@@ -209,7 +220,7 @@ fun ProductCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(40.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6200EA))
+                colors = ButtonDefaults.buttonColors(containerColor = PeachPinkAccent)
             ) {
                 Text(
                     text = "Xem Chi Tiết",
@@ -222,12 +233,11 @@ fun ProductCard(
             Spacer(modifier = Modifier.height(8.dp))
 
             // 5. Ngày thêm sản phẩm (createDate)
-            Text(
-                text = "Ngày thêm: ${product.createDate}",
-                fontSize = 12.sp,
-                color = Color.Gray
-            )
+            // Text(
+            //     text = "Ngày thêm: ${product.createDate}",
+            //     fontSize = 12.sp,
+            //     color = Color.Black
+            // )
         }
     }
 }
-

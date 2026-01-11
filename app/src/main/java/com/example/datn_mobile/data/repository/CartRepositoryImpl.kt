@@ -20,7 +20,7 @@ class CartRepositoryImpl @Inject constructor(
 ) : CartRepository {
 
     /**
-     * 1️⃣ Thêm sản phẩm vào giỏ hàng
+     * 1. Thêm sản phẩm vào giỏ hàng
      * POST /bej3/cart/add/{attId}
      *
      * Trả về CartItemResponse (chi tiết sản phẩm được thêm)
@@ -53,7 +53,7 @@ class CartRepositoryImpl @Inject constructor(
     }
 
     /**
-     * 2️⃣ Xem danh sách giỏ hàng
+     * 2. Xem danh sách giỏ hàng
      * GET /bej3/cart/view
      *
      * Trả về List<CartItemResponse>
@@ -84,12 +84,13 @@ class CartRepositoryImpl @Inject constructor(
     }
 
     /**
-     * 3️⃣ Đặt hàng (Place Order)
+     * 3. Đặt hàng (Place Order)
      * POST /bej3/cart/place-order
      *
      * Trả về OrderDetailsResponse
      */
     override suspend fun placeOrder(
+        type: Int,
         phoneNumber: String,
         email: String,
         address: String,
@@ -108,6 +109,7 @@ class CartRepositoryImpl @Inject constructor(
             }
 
             val request = PlaceOrderRequest(
+                type = type,
                 phoneNumber = phoneNumber,
                 email = email,
                 address = address,
@@ -142,7 +144,7 @@ class CartRepositoryImpl @Inject constructor(
     }
 
     /**
-     * 4️⃣ Xem lịch sử đơn hàng
+     * 4. Xem lịch sử đơn hàng
      * GET /bej3/cart/my-order
      *
      * Trả về List<OrderDetailsResponse>
@@ -171,6 +173,109 @@ class CartRepositoryImpl @Inject constructor(
             Resource.Error("Lỗi không xác định: ${e.message}")
         }
     }
+
+    /**
+     * 5. Xóa 1 sản phẩm khỏi giỏ hàng
+     * DELETE /bej3/cart/remove/{cartItemId}
+     *
+     * Trả về ApiResponse<Unit> với code = 1000 nếu thành công
+     */
+    override suspend fun removeFromCart(cartItemId: String): Resource<Unit> {
+        return try {
+            val response = cartApiService.removeFromCart(cartItemId)
+            if (response.isSuccessful) {
+                val apiResponse = response.body()
+                if (apiResponse?.code == 1000) {
+                    Resource.Success(Unit)
+                } else {
+                    Resource.Error(apiResponse?.message ?: "Xóa sản phẩm khỏi giỏ thất bại")
+                }
+            } else {
+                when (response.code()) {
+                    401 -> Resource.Error("User unauthenticated")
+                    404 -> Resource.Error("Sản phẩm trong giỏ không tồn tại")
+                    400 -> Resource.Error("Lỗi server không xác định")
+                    else -> Resource.Error("Lỗi xóa khỏi giỏ: ${response.message()}")
+                }
+            }
+        } catch (e: HttpException) {
+            Resource.Error("Lỗi mạng: ${e.message()}")
+        } catch (e: IOException) {
+            Resource.Error("Lỗi kết nối: ${e.message}")
+        } catch (e: Exception) {
+            Resource.Error("Lỗi không xác định: ${e.message}")
+        }
+    }
+
+    /**
+     * 6. Cập nhật số lượng 1 sản phẩm trong giỏ hàng
+     * PUT /bej3/cart/update/{cartItemId}?quantity={quantity}
+     *
+     * Trả về CartItemResponse sau khi cập nhật
+     */
+    override suspend fun updateCartItemQuantity(
+        cartItemId: String,
+        quantity: Int
+    ): Resource<CartItem> {
+        return try {
+            val response = cartApiService.updateCartItemQuantity(cartItemId, quantity)
+            if (response.isSuccessful) {
+                val apiResponse = response.body()
+                val updatedItem = apiResponse?.result
+                if (updatedItem != null) {
+                    Resource.Success(updatedItem.toCartItemDomain())
+                } else {
+                    Resource.Error("Phản hồi cập nhật giỏ hàng rỗng")
+                }
+            } else {
+                when (response.code()) {
+                    400 -> Resource.Error("Số lượng không hợp lệ")
+                    401 -> Resource.Error("Vui lòng đăng nhập")
+                    404 -> Resource.Error("Sản phẩm trong giỏ không tồn tại")
+                    else -> Resource.Error("Lỗi cập nhật giỏ hàng: ${response.message()}")
+                }
+            }
+        } catch (e: HttpException) {
+            Resource.Error("Lỗi mạng: ${e.message()}")
+        } catch (e: IOException) {
+            Resource.Error("Lỗi kết nối: ${e.message}")
+        } catch (e: Exception) {
+            Resource.Error("Lỗi không xác định: ${e.message}")
+        }
+    }
+
+    /**
+     * 7. Xác nhận đơn sửa chữa
+     * PUT /bej3/orders/repair-order/{orderId}/confirm
+     *
+     * Trả về OrderDetailsResponse với status = 2 (Đã thanh toán)
+     */
+    override suspend fun confirmRepairOrder(orderId: String): Resource<Order> {
+        return try {
+            val response = cartApiService.confirmRepairOrder(orderId)
+            if (response.isSuccessful) {
+                val apiResponse = response.body()
+                if (apiResponse?.result != null) {
+                    Resource.Success(apiResponse.result.toOrderDomain())
+                } else {
+                    Resource.Error("Phản hồi xác nhận đơn hàng rỗng")
+                }
+            } else {
+                when (response.code()) {
+                    400 -> Resource.Error("Thông tin đơn hàng không hợp lệ")
+                    401 -> Resource.Error("Vui lòng đăng nhập")
+                    404 -> Resource.Error("Đơn hàng không tồn tại")
+                    else -> Resource.Error("Lỗi xác nhận đơn hàng: ${response.message()}")
+                }
+            }
+        } catch (e: HttpException) {
+            Resource.Error("Lỗi mạng: ${e.message()}")
+        } catch (e: IOException) {
+            Resource.Error("Lỗi kết nối: ${e.message}")
+        } catch (e: Exception) {
+            Resource.Error("Lỗi không xác định: ${e.message}")
+        }
+    }
 }
 
 // Extension functions to convert API response to domain model
@@ -187,7 +292,8 @@ fun CartItemResponse.toCartItemDomain(): CartItem {
         price = this.price,
         color = this.color,
         productName = this.productName,
-        img = this.img
+        img = this.img,
+        stockQuantity = this.stockQuantity
     )
 }
 
@@ -207,19 +313,32 @@ fun List<CartItemResponse>.toCartDomain(): Cart {
 }
 
 /**
+ * Chuyển OrderNoteResponse thành OrderNote
+ */
+fun com.example.datn_mobile.data.network.api.OrderNoteResponse.toOrderNoteDomain(): com.example.datn_mobile.domain.model.OrderNote {
+    return com.example.datn_mobile.domain.model.OrderNote(
+        note = this.note,
+        updateTime = this.updateTime,
+        userName = this.userName
+    )
+}
+
+/**
  * Chuyển OrderDetailsResponse thành Order
  */
 fun com.example.datn_mobile.data.network.api.OrderDetailsResponse.toOrderDomain(): Order {
     return Order(
         id = this.id,
-        userName = this.userName,
-        phoneNumber = this.phoneNumber,
-        email = this.email,
+        userName = this.userName ?: "",
+        phoneNumber = this.phoneNumber ?: "",
+        email = this.email ?: "",
         address = this.address,
         description = this.description,
-        totalPrice = this.totalPrice,
-        orderAt = this.orderAt,
+        totalPrice = this.totalPrice ?: 0.0,
+        orderAt = this.orderAt ?: "",
         updatedAt = this.updatedAt,
+        type = this.type ?: 1, // Mặc định là đơn sửa chữa
+        status = this.status,
         orderItems = this.orderItems.map { item ->
             com.example.datn_mobile.domain.model.OrderItem(
                 productAttName = item.productAttName,
@@ -229,7 +348,8 @@ fun com.example.datn_mobile.data.network.api.OrderDetailsResponse.toOrderDomain(
                 productName = item.productName,
                 img = item.img
             )
-        }
+        },
+        orderNotes = this.orderNotes?.map { it.toOrderNoteDomain() } ?: emptyList()
     )
 }
 

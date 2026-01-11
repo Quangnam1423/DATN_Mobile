@@ -17,8 +17,8 @@ class ProductRepositoryImpl @Inject constructor(
             val response = apiService.getHomeProducts()
             if (response.isSuccessful) {
                 val homeResponse = response.body()
-                if (homeResponse?.result != null) {
-                    Resource.Success(homeResponse.result)
+                if (homeResponse?.result?.products != null) {
+                    Resource.Success(homeResponse.result.products)
                 } else {
                     Resource.Error("Response body is empty or null")
                 }

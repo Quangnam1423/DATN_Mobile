@@ -20,7 +20,8 @@ data class EditProfileState(
     val isSaving: Boolean = false,
     val error: String? = null,
     val isAuthenticated: Boolean = false,
-    val hasToken: Boolean = false
+    val hasToken: Boolean = false,
+    val isProfileUpdated: Boolean = false
 )
 
 @HiltViewModel
@@ -96,7 +97,8 @@ class EditProfileViewModel @Inject constructor(
         viewModelScope.launch {
             _editProfileState.value = _editProfileState.value.copy(
                 isSaving = true,
-                error = null
+                error = null,
+                isProfileUpdated = false
             )
 
             when (val result = updateUserProfileUseCase(
@@ -108,20 +110,26 @@ class EditProfileViewModel @Inject constructor(
                     _editProfileState.value = _editProfileState.value.copy(
                         userProfile = result.data,
                         isSaving = false,
-                        error = null
+                        error = null,
+                        isProfileUpdated = true
                     )
-                    MessageManager.showSuccess("✅ Cập nhật profile thành công")
+                    MessageManager.showSuccess("Cập nhật profile thành công")
                 }
                 is Resource.Error -> {
                     _editProfileState.value = _editProfileState.value.copy(
                         isSaving = false,
-                        error = result.message
+                        error = result.message,
+                        isProfileUpdated = false
                     )
                     MessageManager.showError(result.message ?: "Cập nhật profile thất bại")
                 }
                 else -> { }
             }
         }
+    }
+
+    fun consumeProfileUpdatedEvent() {
+        _editProfileState.value = _editProfileState.value.copy(isProfileUpdated = false)
     }
 
     /**

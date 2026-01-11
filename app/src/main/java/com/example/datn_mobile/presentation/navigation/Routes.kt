@@ -10,7 +10,18 @@ sealed class Routes(val route: String) {
     object Profile : Routes("profile_screen")
     object EditProfile : Routes("edit_profile_screen")
     object Cart : Routes("cart_screen")
+    object Checkout : Routes("checkout_screen")
+    object ZaloPayWebView : Routes("zalopay_webview_screen/{orderUrl}") {
+        fun createRoute(orderUrl: String): String = "zalopay_webview_screen/$orderUrl"
+    }
     object ProductDetail : Routes("product_detail_screen")
+    object Help : Routes("help_screen")
+    object PrivacyPolicy : Routes("privacy_policy_screen")
+    object Notification : Routes("notification_screen")
+    object OrderTracking : Routes("order_tracking_screen")
+    object OrderDetail : Routes("order_detail_screen") {
+        fun createRoute(orderId: String) = "order_detail_screen/$orderId"
+    }
     object Detail : Routes("detail_screen/{itemId}") {
         fun createRoute(itemId: String) = "detail_screen/$itemId"
     }

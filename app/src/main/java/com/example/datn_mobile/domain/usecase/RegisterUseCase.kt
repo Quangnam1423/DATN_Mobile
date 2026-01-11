@@ -12,6 +12,14 @@ class RegisterUseCase @Inject constructor(
 ) {
 
     suspend operator fun invoke(credentals: RegisterCredentials) : Resource<UserProfile> {
+        if (credentals.fullName.isBlank()) {
+            return Resource.Error("Họ và tên không được để trống")
+        }
+
+        if (credentals.email.isBlank()) {
+            return Resource.Error("Email không được để trống")
+        }
+
         if (credentals.phoneNumber.isBlank()) {
             return Resource.Error("Số điện thoại không được để trống")
         }

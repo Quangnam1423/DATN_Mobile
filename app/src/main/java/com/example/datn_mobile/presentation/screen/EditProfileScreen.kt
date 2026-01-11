@@ -34,16 +34,32 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.datn_mobile.presentation.viewmodel.EditProfileViewModel
+import com.example.datn_mobile.presentation.theme.LightPeachPink
+import com.example.datn_mobile.presentation.theme.LightGray
+import com.example.datn_mobile.presentation.theme.PeachPinkAccent
+import com.example.datn_mobile.presentation.theme.LightGray
 import com.example.datn_mobile.utils.MessageManager
 
 @Composable
 fun EditProfileScreen(
     viewModel: EditProfileViewModel = hiltViewModel(),
-    onBackClick: () -> Unit = {}
+    onBackClick: () -> Unit = {},
+    onNavigateToProfile: () -> Unit = {}
 ) {
     val editProfileState by viewModel.editProfileState.collectAsState()
+
+    LaunchedEffect(editProfileState.isProfileUpdated) {
+        if (editProfileState.isProfileUpdated) {
+            onNavigateToProfile()
+            viewModel.consumeProfileUpdatedEvent()
+        }
+    }
 
     Scaffold { paddingValues ->
         Box(
@@ -104,10 +120,11 @@ private fun EditProfileContent(
                 text = "Chỉnh Sửa Hồ Sơ",
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.Black,
+                color = PeachPinkAccent,
                 modifier = Modifier
                     .weight(1f)
-                    .padding(start = 8.dp)
+                    .padding(start = 8.dp),
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
             )
         }
 
@@ -135,11 +152,6 @@ private fun EditProfileContent(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
-                        text = "⚠️",
-                        fontSize = 48.sp,
-                        modifier = Modifier.padding(bottom = 16.dp)
-                    )
-                    Text(
                         text = state.error,
                         fontSize = 14.sp,
                         color = Color.Red,
@@ -163,69 +175,193 @@ private fun EditProfileContent(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp),
+                .padding(horizontal = 24.dp),
             verticalArrangement = Arrangement.Top
         ) {
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // Welcome message
+            Text(
+                text = "Cập Nhật Thông Tin",
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+
+            Text(
+                text = "Vui lòng điền các thông tin bên dưới",
+                fontSize = 14.sp,
+                color = Color.Black,
+                modifier = Modifier.padding(bottom = 32.dp)
+            )
 
             // Email (read-only)
+            Text(
+                text = "Email",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                color = Color.Black,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
             OutlinedTextField(
                 value = state.userProfile?.email ?: "",
                 onValueChange = {},
-                label = { Text("Email") },
+                label = null,
                 placeholder = { Text("Email chưa cập nhật") },
                 enabled = false,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = LightPeachPink,
+                    unfocusedContainerColor = LightPeachPink,
+                    focusedBorderColor = Color.Transparent,
+                    unfocusedBorderColor = Color.Transparent,
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Black,
+                    disabledContainerColor = LightPeachPink,
+                    disabledTextColor = LightGray
+                ),
+                textStyle = androidx.compose.ui.text.TextStyle(
+                    fontSize = 16.sp
+                )
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             // Phone Number (read-only)
+            Text(
+                text = "Số Điện Thoại",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                color = Color.Black,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
             OutlinedTextField(
                 value = state.userProfile?.phoneNumber ?: "",
                 onValueChange = {},
-                label = { Text("Số Điện Thoại") },
+                label = null,
                 placeholder = { Text("Số điện thoại chưa cập nhật") },
                 enabled = false,
-                modifier = Modifier.fillMaxWidth()
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = LightPeachPink,
+                    unfocusedContainerColor = LightPeachPink,
+                    focusedBorderColor = Color.Transparent,
+                    unfocusedBorderColor = Color.Transparent,
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Black,
+                    disabledContainerColor = LightPeachPink,
+                    disabledTextColor = LightGray
+                ),
+                textStyle = androidx.compose.ui.text.TextStyle(
+                    fontSize = 16.sp
+                )
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             // Full Name
+            Text(
+                text = "Họ Tên",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                color = Color.Black,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
             OutlinedTextField(
                 value = fullName,
                 onValueChange = { fullName = it },
-                label = { Text("Họ Tên") },
+                label = null,
                 singleLine = true,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = LightPeachPink,
+                    unfocusedContainerColor = LightPeachPink,
+                    focusedBorderColor = Color.Transparent,
+                    unfocusedBorderColor = Color.Transparent,
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Black
+                ),
+                textStyle = androidx.compose.ui.text.TextStyle(
+                    fontSize = 16.sp
+                )
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             // Address
+            Text(
+                text = "Địa Chỉ",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                color = Color.Black,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
             OutlinedTextField(
                 value = address,
                 onValueChange = { address = it },
-                label = { Text("Địa Chỉ") },
+                label = null,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(100.dp)
+                    .height(100.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = LightPeachPink,
+                    unfocusedContainerColor = LightPeachPink,
+                    focusedBorderColor = Color.Transparent,
+                    unfocusedBorderColor = Color.Transparent,
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Black
+                ),
+                textStyle = androidx.compose.ui.text.TextStyle(
+                    fontSize = 16.sp
+                )
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             // Date of Birth (YYYY-MM-DD format)
+            Text(
+                text = "Ngày Sinh (YYYY-MM-DD)",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                color = Color.Black,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
             OutlinedTextField(
                 value = dob,
                 onValueChange = { dob = it },
-                label = { Text("Ngày Sinh (YYYY-MM-DD)") },
+                label = null,
                 singleLine = true,
-                modifier = Modifier.fillMaxWidth()
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = LightPeachPink,
+                    unfocusedContainerColor = LightPeachPink,
+                    focusedBorderColor = Color.Transparent,
+                    unfocusedBorderColor = Color.Transparent,
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Black
+                ),
+                textStyle = androidx.compose.ui.text.TextStyle(
+                    fontSize = 16.sp
+                )
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
-
+            Spacer(modifier = Modifier.height(32.dp))
 
             // Save button
             Button(
@@ -239,7 +375,14 @@ private fun EditProfileContent(
                 enabled = !state.isSaving,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(48.dp)
+                    .height(56.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = PeachPinkAccent,
+                    contentColor = Color.White,
+                    disabledContainerColor = LightGray,
+                    disabledContentColor = Color.White
+                )
             ) {
                 if (state.isSaving) {
                     CircularProgressIndicator(
@@ -248,7 +391,11 @@ private fun EditProfileContent(
                         color = Color.White
                     )
                 } else {
-                    Text("Lưu Thay Đổi")
+                    Text(
+                        text = "Lưu Thay Đổi",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
 
@@ -259,12 +406,18 @@ private fun EditProfileContent(
                 onClick = onBackClick,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(48.dp),
+                    .height(56.dp),
+                shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Gray
+                    containerColor = LightGray,
+                    contentColor = Color.White
                 )
             ) {
-                Text("Hủy")
+                Text(
+                    text = "Hủy",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold
+                )
             }
 
             Spacer(modifier = Modifier.height(24.dp))

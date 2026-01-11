@@ -27,6 +27,9 @@ import androidx.compose.ui.unit.sp
 import com.example.datn_mobile.domain.model.Role
 import com.example.datn_mobile.domain.model.UserProfile
 import com.example.datn_mobile.presentation.viewmodel.ProfileViewModel
+import com.example.datn_mobile.presentation.theme.LightGray
+import com.example.datn_mobile.presentation.theme.LightPeachPink
+import com.example.datn_mobile.presentation.theme.PeachPinkAccent
 import com.example.compose.DATN_MobileTheme
 import com.example.datn_mobile.utils.MessageManager
 
@@ -35,7 +38,10 @@ fun ProfileScreen(
     viewModel: ProfileViewModel,
     onLogoutClick: () -> Unit,
     onLoginClick: () -> Unit,
-    onEditProfileClick: () -> Unit
+    onEditProfileClick: () -> Unit,
+    onNavigateToHelp: () -> Unit = {},
+    onNavigateToPrivacyPolicy: () -> Unit = {},
+    onNavigateToOrderTracking: () -> Unit = {}
 ) {
     val profileState = viewModel.profileState.collectAsState()
 
@@ -51,7 +57,10 @@ fun ProfileScreen(
                 viewModel.logout()
                 onLogoutClick()
             },
-            onEditClick = onEditProfileClick
+            onEditClick = onEditProfileClick,
+            onNavigateToHelp = onNavigateToHelp,
+            onNavigateToPrivacyPolicy = onNavigateToPrivacyPolicy,
+            onNavigateToOrderTracking = onNavigateToOrderTracking
         )
     }
 }
@@ -90,7 +99,7 @@ private fun NotAuthenticatedScreen(onLoginClick: () -> Unit) {
             Text(
                 text = "Để xem thông tin cá nhân và quản lý đơn hàng của bạn",
                 fontSize = 14.sp,
-                color = Color.Gray,
+                color = Color.Black,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(bottom = 32.dp)
             )
@@ -100,15 +109,17 @@ private fun NotAuthenticatedScreen(onLoginClick: () -> Unit) {
                 onClick = onLoginClick,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(48.dp),
+                    .height(56.dp),
+                shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF2196F3)
+                    containerColor = PeachPinkAccent,
+                    contentColor = Color.White
                 )
             ) {
                 Text(
                     text = "Đăng nhập ngay",
                     fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.Bold
                 )
             }
         }
@@ -120,7 +131,10 @@ private fun AuthenticatedProfileScreen(
     state: com.example.datn_mobile.presentation.viewmodel.ProfileState,
     onRefresh: () -> Unit,
     onLogout: () -> Unit,
-    onEditClick: () -> Unit
+    onEditClick: () -> Unit,
+    onNavigateToHelp: () -> Unit = {},
+    onNavigateToPrivacyPolicy: () -> Unit = {},
+    onNavigateToOrderTracking: () -> Unit = {}
 ) {
     // Show error message when error occurs
     LaunchedEffect(state.error) {
@@ -139,15 +153,14 @@ private fun AuthenticatedProfileScreen(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color(0xFF2196F3))
-                .padding(vertical = 20.dp),
-            contentAlignment = Alignment.Center
+                .padding(horizontal = 8.dp, vertical = 12.dp)
         ) {
             Text(
                 text = "Hồ sơ cá nhân",
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.White
+                color = PeachPinkAccent,
+                modifier = Modifier.align(Alignment.Center)
             )
         }
 
@@ -169,7 +182,10 @@ private fun AuthenticatedProfileScreen(
                 onRefresh = onRefresh,
                 onLogout = onLogout,
                 onEditClick = onEditClick,
-                hasError = state.error != null
+                hasError = state.error != null,
+                onNavigateToHelp = onNavigateToHelp,
+                onNavigateToPrivacyPolicy = onNavigateToPrivacyPolicy,
+                onNavigateToOrderTracking = onNavigateToOrderTracking
             )
         }
     }
@@ -181,7 +197,10 @@ private fun ProfileContent(
     onRefresh: () -> Unit,
     onLogout: () -> Unit,
     onEditClick: () -> Unit,
-    hasError: Boolean
+    hasError: Boolean,
+    onNavigateToHelp: () -> Unit = {},
+    onNavigateToPrivacyPolicy: () -> Unit = {},
+    onNavigateToOrderTracking: () -> Unit = {}
 ) {
     // Check if profile is incomplete (all fields are null)
     val isProfileIncomplete = profile.fullName == null &&
@@ -204,7 +223,7 @@ private fun ProfileContent(
         ) {
             Surface(
                 shape = CircleShape,
-                color = Color(0xFF2196F3).copy(alpha = 0.2f),
+                color = LightPeachPink,
                 modifier = Modifier
                     .size(120.dp)
                     .align(Alignment.Center)
@@ -263,14 +282,17 @@ private fun ProfileContent(
                         onClick = onEditClick,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(36.dp),
+                            .height(40.dp),
+                        shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF856404)
+                            containerColor = PeachPinkAccent,
+                            contentColor = Color.White
                         )
                     ) {
                         Text(
                             text = "Cập nhật ngay",
-                            fontSize = 12.sp
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold
                         )
                     }
                 }
@@ -301,9 +323,9 @@ private fun ProfileContent(
         // Profile info card
         Card(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(8.dp),
+            shape = RoundedCornerShape(12.dp),
             colors = CardDefaults.cardColors(
-                containerColor = Color(0xFFF5F5F5)
+                containerColor = LightPeachPink
             )
         ) {
             Column(
@@ -386,21 +408,43 @@ private fun ProfileContent(
 
         Spacer(modifier = Modifier.height(32.dp))
 
+        // Order Tracking button
+        Button(
+            onClick = onNavigateToOrderTracking,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = PeachPinkAccent,
+                contentColor = Color.White
+            ),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Text(
+                text = "Theo dõi đơn hàng",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
         // Edit Profile button
         Button(
             onClick = onEditClick,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(48.dp),
+                .height(56.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF4CAF50)
+                containerColor = PeachPinkAccent,
+                contentColor = Color.White
             ),
-            shape = RoundedCornerShape(8.dp)
+            shape = RoundedCornerShape(12.dp)
         ) {
             Text(
                 text = "Chỉnh Sửa Hồ Sơ",
                 fontSize = 16.sp,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.Bold
             )
         }
 
@@ -411,16 +455,17 @@ private fun ProfileContent(
             onClick = onLogout,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(48.dp),
+                .height(56.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFFFF6B6B)
+                containerColor = Color(0xFFFF6B6B),
+                contentColor = Color.White
             ),
-            shape = RoundedCornerShape(8.dp)
+            shape = RoundedCornerShape(12.dp)
         ) {
             Text(
                 text = "Đăng xuất",
                 fontSize = 16.sp,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.Bold
             )
         }
 
@@ -431,13 +476,65 @@ private fun ProfileContent(
             onClick = onRefresh,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(48.dp),
-            shape = RoundedCornerShape(8.dp)
+                .height(56.dp),
+            shape = RoundedCornerShape(12.dp),
+            colors = ButtonDefaults.outlinedButtonColors(
+                contentColor = PeachPinkAccent
+            )
         ) {
             Text(
                 text = "Làm mới",
                 fontSize = 16.sp,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Help & Info section
+        Text(
+            text = "Hỗ trợ & Thông tin",
+            fontSize = 14.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = Color.Black,
+            modifier = Modifier.padding(horizontal = 0.dp, vertical = 8.dp)
+        )
+
+        // Help button
+        OutlinedButton(
+            onClick = onNavigateToHelp,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp),
+            shape = RoundedCornerShape(12.dp),
+            colors = ButtonDefaults.outlinedButtonColors(
+                contentColor = PeachPinkAccent
+            )
+        ) {
+            Text(
+                text = "Trợ giúp",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Privacy Policy button
+        OutlinedButton(
+            onClick = onNavigateToPrivacyPolicy,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp),
+            shape = RoundedCornerShape(12.dp),
+            colors = ButtonDefaults.outlinedButtonColors(
+                contentColor = PeachPinkAccent
+            )
+        ) {
+            Text(
+                text = "Chính sách bảo mật",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold
             )
         }
 
@@ -458,20 +555,20 @@ private fun ProfileInfoRow(
         verticalAlignment = Alignment.Top,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = label,
-            modifier = Modifier
-                .size(20.dp)
-                .padding(top = 2.dp),
-            tint = Color(0xFF2196F3)
-        )
+            Icon(
+                imageVector = icon,
+                contentDescription = label,
+                modifier = Modifier
+                    .size(20.dp)
+                    .padding(top = 2.dp),
+                tint = PeachPinkAccent
+            )
 
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = label,
                 fontSize = 12.sp,
-                color = Color.Gray,
+                color = Color.Black,
                 fontWeight = FontWeight.Medium
             )
             Text(

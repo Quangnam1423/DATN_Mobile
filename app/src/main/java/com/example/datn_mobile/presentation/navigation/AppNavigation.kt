@@ -1,6 +1,8 @@
 package com.example.datn_mobile.presentation.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -11,17 +13,26 @@ import com.example.datn_mobile.presentation.register.RegisterScreen
 import com.example.datn_mobile.presentation.screen.CartScreen
 import com.example.datn_mobile.presentation.screen.EditProfileScreen
 import com.example.datn_mobile.presentation.screen.ForgotPasswordScreen
+import com.example.datn_mobile.presentation.screen.HelpScreen
 import com.example.datn_mobile.presentation.screen.HomeScreenWithNav
 import com.example.datn_mobile.presentation.screen.LoginScreen
+import com.example.datn_mobile.presentation.screen.NotificationScreen
+import com.example.datn_mobile.presentation.screen.PrivacyPolicyScreen
 import com.example.datn_mobile.presentation.screen.ProductDetailScreen
 import com.example.datn_mobile.presentation.screen.SearchScreen
 import com.example.datn_mobile.presentation.screen.SplashScreen
+import com.example.datn_mobile.presentation.screen.CheckoutScreen
+import com.example.datn_mobile.presentation.screen.OrderTrackingScreen
+import com.example.datn_mobile.presentation.screen.OrderDetailScreen
+import com.example.datn_mobile.presentation.screen.ZaloPayWebViewScreen
+import com.example.datn_mobile.domain.model.Order
 import com.example.datn_mobile.presentation.viewmodel.CartViewModel
 import com.example.datn_mobile.presentation.viewmodel.HomeViewModel
 import com.example.datn_mobile.presentation.viewmodel.ProductDetailViewModel
 import com.example.datn_mobile.presentation.viewmodel.ProfileViewModel
 import com.example.datn_mobile.presentation.viewmodel.SearchViewModel
 import com.example.datn_mobile.presentation.viewmodel.SplashViewModel
+import android.net.Uri
 
 @Composable
 fun AppNavigation() {
@@ -76,9 +87,13 @@ fun AppNavigation() {
         composable(route = Routes.Home.route) {
             val homeViewModel: HomeViewModel = hiltViewModel()
             val profileViewModel: ProfileViewModel = hiltViewModel()
+            val cartViewModel: CartViewModel = hiltViewModel()
+            val notificationViewModel: com.example.datn_mobile.presentation.viewmodel.NotificationViewModel = hiltViewModel()
             HomeScreenWithNav(
                 homeViewModel = homeViewModel,
                 profileViewModel = profileViewModel,
+                cartViewModel = cartViewModel,
+                notificationViewModel = notificationViewModel,
                 onProductClick = { productId ->
                     navController.navigate(Routes.ProductDetail.route + "/$productId")
                 },
@@ -99,6 +114,28 @@ fun AppNavigation() {
                 onNavigateToCart = {
                     // TODO: Navigate to cart screen
                     navController.navigate(Routes.Cart.route)
+                },
+                onNavigateToHelp = {
+                    navController.navigate(Routes.Help.route)
+                },
+                onNavigateToPrivacyPolicy = {
+                    navController.navigate(Routes.PrivacyPolicy.route)
+                },
+                onNavigateToNotification = {
+                    navController.navigate(Routes.Notification.route)
+                },
+                onNavigateToOrderTracking = {
+                    navController.navigate(Routes.OrderTracking.route)
+                },
+                onSubmitRepairRequest = { phone, email, address, description ->
+                    // Gọi placeOrder với type=1 (đơn sửa)
+                    cartViewModel.placeOrder(
+                        type = 1,
+                        phoneNumber = phone,
+                        email = email,
+                        address = address,
+                        description = description
+                    )
                 }
             )
         }
@@ -111,14 +148,13 @@ fun AppNavigation() {
                     navController.popBackStack()
                 },
                 onSearchSubmit = { _ ->
-                    // TODO: Navigate to search results screen with query
-                    // For now, just pop back
-                    navController.popBackStack()
+                    // Không cần điều hướng, SearchScreen sẽ hiển thị kết quả ngay
                 },
                 onRecentSearchClick = { _ ->
-                    // TODO: Navigate to search results screen with keyword
-                    // For now, just pop back
-                    navController.popBackStack()
+                    // Không cần điều hướng, SearchScreen sẽ hiển thị kết quả ngay
+                },
+                onProductClick = { productId ->
+                    navController.navigate(Routes.ProductDetail.route + "/$productId")
                 }
             )
         }
@@ -155,6 +191,9 @@ fun AppNavigation() {
             EditProfileScreen(
                 onBackClick = {
                     navController.popBackStack()
+                },
+                onNavigateToProfile = {
+                    navController.popBackStack()
                 }
             )
         }
@@ -164,12 +203,67 @@ fun AppNavigation() {
             CartScreen(
                 viewModel = cartViewModel,
                 onBackClick = {
-                    navController.popBackStack()
+                    // Luôn quay về màn hình Home khi nhấn mũi tên back trên màn giỏ hàng
+                    navController.navigate(Routes.Home.route) {
+                        popUpTo(Routes.Home.route) {
+                            inclusive = false
+                        }
+                        launchSingleTop = true
+                    }
+                },
+                onContinueShoppingClick = {
+                    navController.navigate(Routes.Home.route) {
+                        popUpTo(Routes.Home.route) {
+                            inclusive = false
+                        }
+                        launchSingleTop = true
+                    }
                 },
                 onCheckoutClick = {
-                    // TODO: Navigate to checkout screen
-                    navController.popBackStack()
+                    navController.navigate(Routes.Checkout.route)
                 }
+            )
+        }
+
+        composable(route = Routes.Checkout.route) {
+            // Dùng chung CartViewModel với màn Cart để giữ lại trạng thái checkbox đã chọn
+            val parentEntry = navController.getBackStackEntry(Routes.Cart.route)
+            val cartViewModel: CartViewModel = hiltViewModel(parentEntry)
+            val cartState = cartViewModel.cartState.collectAsState()
+
+            // Khi có URL thanh toán từ ViewModel -> điều hướng sang WebView trong app
+            LaunchedEffect(cartState.value.paymentRedirectUrl) {
+                val url = cartState.value.paymentRedirectUrl
+                if (!url.isNullOrBlank()) {
+                    val encodedUrl = Uri.encode(url)
+                    navController.navigate(Routes.ZaloPayWebView.createRoute(encodedUrl))
+                    // Reset lại để tránh điều hướng lại khi back
+                    cartViewModel.clearPaymentRedirect()
+                }
+            }
+
+            CheckoutScreen(
+                viewModel = cartViewModel,
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onOrderSuccess = {
+                    // onOrderSuccess hiện tại không được dùng cho redirect nữa,
+                    // có thể để trống hoặc điều hướng nếu cần.
+                }
+            )
+        }
+
+        composable(
+            route = Routes.ZaloPayWebView.route,
+            arguments = listOf(
+                navArgument("orderUrl") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val orderUrl = backStackEntry.arguments?.getString("orderUrl") ?: ""
+            ZaloPayWebViewScreen(
+                orderUrl = orderUrl,
+                onBackClick = { navController.popBackStack() }
             )
         }
 
@@ -188,6 +282,77 @@ fun AppNavigation() {
                     navController.popBackStack()
                 }
             )
+        }
+
+        composable(route = Routes.Help.route) {
+            HelpScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable(route = Routes.PrivacyPolicy.route) {
+            PrivacyPolicyScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable(route = Routes.Notification.route) {
+            NotificationScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable(route = Routes.OrderTracking.route) {
+            val orderTrackingViewModel: com.example.datn_mobile.presentation.viewmodel.OrderTrackingViewModel = hiltViewModel()
+            OrderTrackingScreen(
+                viewModel = orderTrackingViewModel,
+                onBackClick = {
+                    // Điều hướng về Home screen (tab Profile sẽ được hiển thị)
+                    navController.navigate(Routes.Home.route) {
+                        popUpTo(Routes.Home.route) {
+                            inclusive = false
+                        }
+                        launchSingleTop = true
+                    }
+                },
+                onOrderClick = { order ->
+                    orderTrackingViewModel.selectOrder(order)
+                    navController.navigate(Routes.OrderDetail.createRoute(order.id))
+                }
+            )
+        }
+
+        composable(
+            route = Routes.OrderDetail.route + "/{orderId}",
+            arguments = listOf(
+                navArgument("orderId") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val orderId = backStackEntry.arguments?.getString("orderId") ?: ""
+            // Dùng chung ViewModel với OrderTracking để lấy order
+            val parentEntry = navController.getBackStackEntry(Routes.OrderTracking.route)
+            val orderTrackingViewModel: com.example.datn_mobile.presentation.viewmodel.OrderTrackingViewModel = hiltViewModel(parentEntry)
+            val order = orderTrackingViewModel.getOrderById(orderId)
+            
+            if (order != null) {
+                OrderDetailScreen(
+                    order = order,
+                    onBackClick = {
+                        navController.popBackStack()
+                    }
+                )
+            } else {
+                // Nếu không tìm thấy order, quay lại
+                LaunchedEffect(Unit) {
+                    navController.popBackStack()
+                }
+            }
         }
     }
 }

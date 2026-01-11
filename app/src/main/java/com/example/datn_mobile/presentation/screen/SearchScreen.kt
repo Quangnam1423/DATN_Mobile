@@ -5,6 +5,10 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -19,27 +23,50 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.AsyncImage
+import com.example.datn_mobile.domain.model.Product
+import com.example.datn_mobile.presentation.theme.PeachPinkAccent
+import com.example.datn_mobile.presentation.theme.LightGray
+import com.example.datn_mobile.presentation.viewmodel.HomeViewModel
 import com.example.datn_mobile.presentation.viewmodel.SearchViewModel
+import java.util.Locale
 
 @Composable
 fun SearchScreen(
     viewModel: SearchViewModel,
+    homeViewModel: HomeViewModel = hiltViewModel(),
     onBackClick: () -> Unit,
-    onSearchSubmit: (query: String) -> Unit,
-    onRecentSearchClick: (keyword: String) -> Unit
+    onSearchSubmit: (query: String) -> Unit = {},
+    onRecentSearchClick: (keyword: String) -> Unit = {},
+    onProductClick: (String) -> Unit = {}
 ) {
     val context = LocalContext.current
     val recentSearches = viewModel.recentSearches.collectAsState()
     val searchQuery = viewModel.searchQuery.collectAsState()
     val isLoading = viewModel.isLoading.collectAsState()
+    val homeState = homeViewModel.homeState.collectAsState()
 
     LaunchedEffect(Unit) {
         viewModel.loadRecentSearches(context)
+        homeViewModel.loadProducts()
+    }
+
+    // Filter products based on search query
+    val filteredProducts = if (searchQuery.value.isNotBlank()) {
+        homeState.value.products.filter { product ->
+            product.name.contains(searchQuery.value, ignoreCase = true)
+        }
+    } else {
+        emptyList()
     }
 
     Column(
@@ -57,6 +84,7 @@ fun SearchScreen(
                 if (searchQuery.value.isNotBlank()) {
                     viewModel.saveSearchKeyword(context, searchQuery.value)
                     onSearchSubmit(searchQuery.value)
+                    // Không cần điều hướng, sẽ hiển thị kết quả ngay trên màn hình này
                 }
             },
             onClearClick = { viewModel.updateSearchQuery("") }
@@ -73,44 +101,106 @@ fun SearchScreen(
             return@Column
         }
 
-        // Recent searches
-        if (searchQuery.value.isBlank() && recentSearches.value.isNotEmpty()) {
-            RecentSearchSection(
-                searches = recentSearches.value,
-                onSearchClick = { keyword ->
-                    viewModel.updateSearchQuery(keyword)
-                    onRecentSearchClick(keyword)
-                },
-                onRemoveClick = { keyword ->
-                    viewModel.removeRecentSearch(context, keyword)
-                },
-                onClearAll = { viewModel.clearAllSearches(context) }
-            )
-        } else if (searchQuery.value.isBlank() && recentSearches.value.isEmpty()) {
-            // Empty state
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.padding(32.dp)
+        // Search results
+        if (searchQuery.value.isNotBlank()) {
+            if (homeState.value.isLoading) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = "🔍",
-                        fontSize = 48.sp,
-                        modifier = Modifier.padding(bottom = 16.dp)
-                    )
-                    Text(
-                        text = "Chưa có lịch sử tìm kiếm",
-                        fontSize = 16.sp,
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
-                    Text(
-                        text = "Nhập từ khóa để tìm sản phẩm",
-                        fontSize = 14.sp,
-                        color = Color.Gray
-                    )
+                    CircularProgressIndicator()
+                }
+            } else if (filteredProducts.isEmpty()) {
+                // No results found
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.padding(32.dp)
+                    ) {
+                        Text(
+                            text = "🔍",
+                            fontSize = 48.sp,
+                            modifier = Modifier.padding(bottom = 16.dp)
+                        )
+                        Text(
+                            text = "Không tìm thấy sản phẩm",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+                        Text(
+                            text = "Thử tìm kiếm với từ khóa khác",
+                            fontSize = 14.sp,
+                            color = Color.Black
+                        )
+                    }
+                }
+            } else {
+                // Show search results
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    item {
+                        Text(
+                            text = "Kết quả tìm kiếm: ${filteredProducts.size} sản phẩm",
+                            fontSize = 14.sp,
+                            color = Color.Black,
+                            modifier = Modifier.padding(vertical = 8.dp)
+                        )
+                    }
+                    items(filteredProducts) { product ->
+                        ProductCard(
+                            product = product,
+                            onProductClick = onProductClick
+                        )
+                    }
+                }
+            }
+        } else {
+            // Recent searches
+            if (recentSearches.value.isNotEmpty()) {
+                RecentSearchSection(
+                    searches = recentSearches.value,
+                    onSearchClick = { keyword ->
+                        viewModel.updateSearchQuery(keyword)
+                        onRecentSearchClick(keyword)
+                    },
+                    onRemoveClick = { keyword ->
+                        viewModel.removeRecentSearch(context, keyword)
+                    },
+                    onClearAll = { viewModel.clearAllSearches(context) }
+                )
+            } else {
+                // Empty state
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.padding(32.dp)
+                    ) {
+                        Text(
+                            text = "🔍",
+                            fontSize = 48.sp,
+                            modifier = Modifier.padding(bottom = 16.dp)
+                        )
+                        Text(
+                            text = "Chưa có lịch sử tìm kiếm",
+                            fontSize = 16.sp,
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+                        Text(
+                            text = "Nhập từ khóa để tìm sản phẩm",
+                            fontSize = 14.sp,
+                            color = Color.Black
+                        )
+                    }
                 }
             }
         }
@@ -177,7 +267,7 @@ private fun SearchHeader(
                 ),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Color.Blue,
-                    unfocusedBorderColor = Color.LightGray,
+                    unfocusedBorderColor = LightGray,
                     focusedTextColor = Color.Black,
                     unfocusedTextColor = Color.Black
                 ),
@@ -193,7 +283,7 @@ private fun SearchHeader(
                                 imageVector = Icons.Filled.Close,
                                 contentDescription = "Clear",
                                 modifier = Modifier.size(24.dp),
-                                tint = Color.Gray
+                                tint = LightGray
                             )
                         }
                     }
@@ -224,7 +314,7 @@ private fun RecentSearchSection(
             Text(
                 text = "Lịch sử tìm kiếm",
                 fontSize = 14.sp,
-                color = Color.Gray
+                color = Color.Black
             )
             TextButton(onClick = onClearAll) {
                 Text(
@@ -281,7 +371,7 @@ private fun RecentSearchItem(
                 modifier = Modifier
                     .size(20.dp)
                     .padding(end = 12.dp),
-                tint = Color.Gray
+                tint = LightGray
             )
             Text(
                 text = keyword,
@@ -299,7 +389,7 @@ private fun RecentSearchItem(
                 imageVector = Icons.Filled.Close,
                 contentDescription = "Remove",
                 modifier = Modifier.size(18.dp),
-                tint = Color.Gray
+                tint = LightGray
             )
         }
     }
@@ -401,7 +491,7 @@ fun SearchScreenEmptyPreview() {
                     Text(
                         text = "Nhập từ khóa để tìm sản phẩm",
                         fontSize = 14.sp,
-                        color = Color.Gray
+                        color = Color.Black
                     )
                 }
             }

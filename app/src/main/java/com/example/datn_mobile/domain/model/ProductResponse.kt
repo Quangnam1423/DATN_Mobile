@@ -7,15 +7,15 @@ import com.squareup.moshi.JsonClass
 @JsonClass(generateAdapter = true)
 data class ProductVariant(
     @field:Json(name = "originalPrice")
-    val originalPrice: Long? = null,
+    val originalPrice: Double? = null,
     @field:Json(name = "finalPrice")
-    val finalPrice: Long? = null,
+    val finalPrice: Double? = null,
     @field:Json(name = "thumbnail")
     val thumbnail: String? = null,
     @field:Json(name = "color")
     val color: String? = null,
     @field:Json(name = "price")
-    val price: Long? = null,
+    val price: Double? = null,
     @field:Json(name = "quantity")
     val quantity: Int? = null
 )
@@ -33,13 +33,23 @@ data class Product(
     @field:Json(name = "createDate")
     val createDate: String,
     @field:Json(name = "variant")
-    val variant: ProductVariant
+    val variant: ProductVariant,
+    @field:Json(name = "category_id")
+    val categoryId: Int? = null
+)
+
+@JsonClass(generateAdapter = true)
+data class HomeResult(
+    @field:Json(name = "banners")
+    val banners: List<Any>? = null,
+    @field:Json(name = "products")
+    val products: List<Product>
 )
 
 @JsonClass(generateAdapter = true)
 data class HomeResponse(
     @field:Json(name = "result")
-    val result: List<Product>,
+    val result: HomeResult,
     @field:Json(name = "code")
     val code: Int,
     @field:Json(name = "message")

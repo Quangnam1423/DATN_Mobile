@@ -8,7 +8,7 @@ import com.example.datn_mobile.domain.repository.CartRepository
 import javax.inject.Inject
 
 /**
- * 1️⃣ Thêm sản phẩm vào giỏ hàng
+ * 1. Thêm sản phẩm vào giỏ hàng
  * POST /bej3/cart/add/{attId}
  */
 class AddToCartUseCase @Inject constructor(
@@ -23,7 +23,7 @@ class AddToCartUseCase @Inject constructor(
 }
 
 /**
- * 2️⃣ Xem danh sách giỏ hàng
+ * 2. Xem danh sách giỏ hàng
  * GET /bej3/cart/view
  */
 class GetCartUseCase @Inject constructor(
@@ -35,13 +35,14 @@ class GetCartUseCase @Inject constructor(
 }
 
 /**
- * 3️⃣ Đặt hàng (Place Order)
+ * 3. Đặt hàng (Place Order)
  * POST /bej3/cart/place-order
  */
 class PlaceOrderUseCase @Inject constructor(
     private val cartRepository: CartRepository
 ) {
     suspend operator fun invoke(
+        type: Int = 0, // 0 = mua, 1 = sửa
         phoneNumber: String,
         email: String,
         address: String,
@@ -49,6 +50,9 @@ class PlaceOrderUseCase @Inject constructor(
         totalPrice: Long,
         items: List<Pair<String, String>>  // Pair<cartItemId, productAttId>
     ): Resource<Order> {
+        if (type !in 0..1) {
+            return Resource.Error("Loại đơn hàng không hợp lệ")
+        }
         // Validate input
         if (phoneNumber.isBlank()) {
             return Resource.Error("Vui lòng nhập số điện thoại")
@@ -58,24 +62,34 @@ class PlaceOrderUseCase @Inject constructor(
             return Resource.Error("Vui lòng nhập email")
         }
 
-        if (address.isBlank()) {
-            return Resource.Error("Vui lòng nhập địa chỉ giao hàng")
+        // type 0 = mua: yêu cầu địa chỉ, totalPrice > 0, items không rỗng
+        if (type == 0) {
+            if (address.isBlank()) {
+                return Resource.Error("Vui lòng nhập địa chỉ giao hàng")
+            }
+            if (totalPrice <= 0) {
+                return Resource.Error("Tổng tiền phải lớn hơn 0")
+            }
+            if (items.isEmpty()) {
+                return Resource.Error("Giỏ hàng trống")
+            }
         }
+        // type 1 = sửa: cho phép bỏ qua address/totalPrice/items
 
-        if (totalPrice <= 0) {
-            return Resource.Error("Tổng tiền phải lớn hơn 0")
-        }
-
-        if (items.isEmpty()) {
-            return Resource.Error("Giỏ hàng trống")
-        }
-
-        return cartRepository.placeOrder(phoneNumber, email, address, description, totalPrice, items)
+        return cartRepository.placeOrder(
+            type,
+            phoneNumber,
+            email,
+            address,
+            description,
+            totalPrice,
+            items
+        )
     }
 }
 
 /**
- * 4️⃣ Xem lịch sử đơn hàng
+ * 4. Xem lịch sử đơn hàng
  * GET /bej3/cart/my-order
  */
 class GetMyOrdersUseCase @Inject constructor(
@@ -83,6 +97,40 @@ class GetMyOrdersUseCase @Inject constructor(
 ) {
     suspend operator fun invoke(): Resource<List<Order>> {
         return cartRepository.getMyOrders()
+    }
+}
+
+/**
+ * 6. Cập nhật số lượng 1 sản phẩm trong giỏ hàng
+ * PUT /bej3/cart/update/{cartItemId}?quantity={quantity}
+ */
+class UpdateCartItemQuantityUseCase @Inject constructor(
+    private val cartRepository: CartRepository
+) {
+    suspend operator fun invoke(cartItemId: String, quantity: Int): Resource<CartItem> {
+        if (cartItemId.isBlank()) {
+            return Resource.Error("ID sản phẩm trong giỏ không hợp lệ")
+        }
+        if (quantity < 1) {
+            return Resource.Error("Số lượng phải lớn hơn 0")
+        }
+        // Validation về stockQuantity sẽ được xử lý bởi backend
+        return cartRepository.updateCartItemQuantity(cartItemId, quantity)
+    }
+}
+
+/**
+ * 7. Xác nhận đơn sửa chữa
+ * PUT /bej3/orders/repair-order/{orderId}/confirm
+ */
+class ConfirmRepairOrderUseCase @Inject constructor(
+    private val cartRepository: CartRepository
+) {
+    suspend operator fun invoke(orderId: String): Resource<Order> {
+        if (orderId.isBlank()) {
+            return Resource.Error("ID đơn hàng không hợp lệ")
+        }
+        return cartRepository.confirmRepairOrder(orderId)
     }
 }
 

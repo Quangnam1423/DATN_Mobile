@@ -15,7 +15,7 @@ object ApiConfig {
     // LƯU Ý: 
     // - Retrofit yêu cầu baseUrl phải kết thúc bằng dấu "/"
     // - Không thêm "/bej3" vào baseUrl vì các API endpoints đã có prefix "/bej3" sẵn
-    const val BASE_URL = "http://10.0.2.2:8080/"
+    const val BASE_URL = "http://192.168.102.7:8080/"
     
     // Hoặc nếu test trên device thật, uncomment dòng dưới và thay IP:
     // const val BASE_URL = "http://192.168.1.100:8080/"
